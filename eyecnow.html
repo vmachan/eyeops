@@ -9,16 +9,8 @@
 
         $(document).ready(function()
         {
-            var currGroup = new fabric.Group([], { left: 200, top: 200} );
             var canvas = new fabric.Canvas('canvas');
-
-            canvas.on('object:selected', function(options) {
-              if (options.target) {
-                console.log('an object was selected! ', options.target.type);
-                console.log(options.target);
-                console.log(options.target.getTransformMatrix());
-              }
-            });
+            ['object:moving', 'object:scaling', 'object:rotating'].forEach(addChildMoveLine);
 
             $("#createBox").click(function()
             {
@@ -92,18 +84,17 @@
 
             $('html').keyup(function(e){
                 if(e.keyCode == 46) {
-                    console.log("in delete");
                     var objDel = canvas.getActiveObject();
-                    console.log("in delete2");
                     if (objDel != null) 
                     {
-                        alert("selected object is " + objDel);
-                        //objDel.remove();
-                        canvas.remove(objDel);
-                        console.log("in delete3");
+                        // alert("selected object is " + objDel);
+                        // objDel.remove();
+                        // canvas.remove(objDel);
+                        deleteObject(objDel);
                     }
                 }
             });
+
             $("#sendBackwards").click(function()
             {
                 var objMnp = canvas.getActiveObject();
@@ -126,18 +117,27 @@
                 canvas.connect = true;
             });
 
-            $("#groupObjects").click(function() {
+            $("#groupObjects").click(function() 
+            {
               var objList = canvas.getActiveGroup(),
                   group = new fabric.Group();
               console.log("objList");
               console.log(objList);
-              objList.forEachObject(function(o) {
-                      o.hasControls = false;
-                      o.selectable = false;
-                      o.hasBorders = false;
-                      group.addWithUpdate(o);
-                      canvas.remove(o);
-              });
+              objList.forEachObject(function(o) 
+                      {
+                        o.hasControls = false;
+                        o.selectable = false;
+                        o.hasBorders = false;
+                        if (o.type == 'line') 
+                        {
+                          // console.log('Selected line');
+                          o.lockRotation = false;
+                          o.lockMovementX = false;
+                          o.lockMovementY = false;
+                        }
+                        group.addWithUpdate(o);
+                        canvas.remove(o);
+                      });
               group.set('left', objList.left);
               group.set('top', objList.top);
               group.set('width', objList.width);
@@ -156,28 +156,46 @@
                if (objGroup) {
                  var items = objGroup._objects;
                  objGroup._restoreObjectsState();
-                 for(var i = 0; i < items.length; i++) {
+                 for (var i = 0; i < items.length; i++) 
+                 {
                    var obj = null;
-                   if (items[i].type == 'path') {
-                     obj = items[i].clone(function(x) { 
-                         console.log("in path"); 
-                         console.log(x);
-                         obj = x;
-                         obj.hasControls = true; // items[i].hasControls = true;
-                         obj.selectable = true;  // items[i].selectable = true;
-                         obj.hasBorders = true;  // items[i].hasBorders = true;
-                         obj.flipX = items[i].flipX;
-                         obj.flipY = items[i].flipY;
-                         canvas.add(obj);        // canvas.add(items[i]);
-                     });
-                   } else {
+                   if (items[i].type == 'path') 
+                   {
+                     obj = items[i].clone(function(x) 
+                           { 
+                             console.log("in path"); 
+                             console.log(x);
+                             obj = x;
+                             obj.hasControls = true; // items[i].hasControls = true;
+                             obj.selectable = true;  // items[i].selectable = true;
+                             obj.hasBorders = true;  // items[i].hasBorders = true;
+                             obj.flipX = items[i].flipX;
+                             obj.flipY = items[i].flipY;
+                             canvas.add(obj);        // canvas.add(items[i]);
+                           });
+                   } 
+                   else 
+                   {
                      obj = items[i].clone();
                      obj.hasControls = true; // items[i].hasControls = true;
                      obj.selectable = true;  // items[i].selectable = true;
                      obj.hasBorders = true;  // items[i].hasBorders = true;
-                     console.log(obj);
+                     if (obj.type == 'line') 
+                     {
+                       obj.hasControls = false;
+                       obj.hasBorders = false;
+                       obj.lockRotation = false;
+                       obj.lockMovementX = false;
+                       obj.lockMovementY = false;
+                     }
                      obj.flipX = items[i].flipX;
                      obj.flipY = items[i].flipY;
+
+                     if (items[i].addChild) 
+                     {
+                       console.log("found addchild in ungrouped items");
+                       obj.addChild = items[i].addChild;
+                     }
                      canvas.add(obj);        // canvas.add(items[i]);
                      console.log(obj);
                    }
@@ -203,93 +221,180 @@
               canvas.setActiveGroup(group.setCoords()).renderAll();
             });
 
-            $("#testGroupObjects").click(function()
-            {
-                var circle = new fabric.Circle({
-                  radius: 100,
-                  fill: '#eef',
-                  scaleY: 0.5,
-                  originX: 'center',
-                  originY: 'center'
-                });
-
-                var text = new fabric.Text('hello world', {
-                  fontSize: 30,
-                  originX: 'center',
-                  originY: 'center'
-                });
-
-                var group = new fabric.Group([ circle, text ], {
-                  left: 150,
-                  top: 100,
-                  angle: -10
-                });
-
-                canvas.add(group);
-            });
-
-            canvas.on('object:selected', function(options) 
-            {
-                if (canvas.connect) 
-                {
-                    canvas.connect = false;
-
-                    var fromObj = selectedElement;
-                    var toObj = options.target;
-
-                    var from = fromObj.getCenterPoint();
-                    var to = toObj.getCenterPoint();
-                    var line = makeLine([from.x, from.y, to.x, to.y]);
-
-                    canvas.add(line);
-
-                    selectedElement.moveLine = function() 
-                    {
-                        var from = selectedElement.getCenterPoint();
-                        line.set({ 'x1': from.x, 'y1': from.y, selectable: true });
-                        line.setCoords();
-                    };
-                    options.target.moveLine = function() 
-                    {
-                        var to = options.target.getCenterPoint();
-                        line.set({ 'x2': to.x, 'y2': to.y, selectable: true  });
-                        line.setCoords();
-                    };
-                }
-         	     selectedElement = options.target;
-            });
-
-            canvas.on('object:moving', function(options) {
-                 if (typeof selectedElement.moveLine == 'function') {
-                    selectedElement.moveLine();
-                 }
-                 canvas.renderAll();
-           	 });
-
             function makeLine(coords) {
                 return new fabric.Line(coords, {
                     fill: 'teal',
                     stroke: 'navy',
-                    strokeWidth: 2,
+                    strokeWidth: 4,
                     hasControls: true,
                     hasBorders: false,
                     lockScalingX: true,
                     lockScalingY: true,
-                    lockRotation: true,
-                    lockMovementX: true,
-                    lockMovementY: true,
+                    lockRotation: false, // true,
+                    lockMovementX: false, // true,
+                    lockMovementY: false, // true,
                     perPixelTargetFind: true,
                     selectable: true
                 });
             }        
+
+            function addChildLine(options) 
+            {
+                canvas.off('object:selected', addChildLine);
+
+                var fromObject = canvas.addChild.start; console.log(fromObject);
+                var toObject = options.target;
+
+                var from = fromObject.getCenterPoint();
+                var to = toObject.getCenterPoint();
+                var line = makeLine([from.x, from.y, to.x, to.y]);
+
+                canvas.add(line);
+                line.sendToBack();
+                
+                fromObject.addChild = {
+                    // this retains the existing arrays (if there were any)
+                    from: (fromObject.addChild && fromObject.addChild.from) || [],
+                    to: (fromObject.addChild && fromObject.addChild.to)
+                }
+                fromObject.addChild.from.push(line);
+                toObject.addChild = {
+                    from: (toObject.addChild && toObject.addChild.from),
+                    to: (toObject.addChild && toObject.addChild.to) || []
+                }
+                toObject.addChild.to.push(line);
+
+                // to remove line references when the line gets removed
+                line.addChildRemove = function () {
+                    fromObject.addChild.from.forEach(function (e, i, arr) {
+                        if (e === line)
+                            arr.splice(i, 1);
+                    });
+                    toObject.addChild.to.forEach(function (e, i, arr) {
+                        if (e === line)
+                            arr.splice(i, 1);
+                    });
+                }
+                canvas.addChild = undefined;
+            }
+
+            function addChildMoveLine(event) {
+                canvas.on(event, function (options) {
+                    var object = options.target;
+                    var objectCenter = object.getCenterPoint();
+
+                    // udpate lines (if any)
+                    if (object.type != 'group') {
+                      if (object.addChild) {
+                          if (object.addChild.from)
+                              object.addChild.from.forEach(function (line) {
+                                  line.set({ 'x1': objectCenter.x, 'y1': objectCenter.y });
+                              })
+                              if (object.addChild.to)
+                                  object.addChild.to.forEach(function (line) {
+                                      line.set({ 'x2': objectCenter.x, 'y2': objectCenter.y });
+                                  })
+                      }
+                    } else {
+                      console.log("group found");
+
+                      var items = object.getObjects();
+                      for(var i = 0; i < items.length; i++) {
+                          var currItem = items[i];
+                          currItemCenter = currItem.getCenterPoint();
+
+                          if (currItem.addChild) {
+                              if (currItem.addChild.from)
+                                  currItem.addChild.from.forEach(function (line) {
+                                      line.set({ 'x1': currItemCenter.x, 'y1': currItemCenter.y });
+                                  })
+                                  if (currItem.addChild.to)
+                                      currItem.addChild.to.forEach(function (line) {
+                                          line.set({ 'x2': currItemCenter.x, 'y2': currItemCenter.y });
+                                      })
+                          }
+                      }
+                    }
+                    canvas.renderAll();
+                });
+            }
+
+            $("#addChild").click(function()
+            {
+                var temp = canvas.getActiveObject();
+
+                canvas.addChild = {
+                    start: temp
+                }
+
+                // for when addChild is clicked twice
+                canvas.off('object:selected', addChildLine);
+                canvas.on('object:selected', addChildLine);
+                canvas.on('selection:cleared', refreshChildren);
+            });
+
+            function deleteObject(delThis) {
+                // var object = canvas.getActiveObject();
+                var object = delThis;
+
+                // remove lines (if any)
+                if (object.addChild) {
+                    if (object.addChild.from)
+                        // step backwards since we are deleting
+                        for (var i = object.addChild.from.length - 1; i >= 0; i--) {
+                            var line = object.addChild.from[i];
+                            line.addChildRemove();
+                            line.remove();
+                        }
+                    if (object.addChild.to)
+                        for (var i = object.addChild.to.length - 1; i >= 0; i--) {
+                            var line = object.addChild.to[i];
+                            line.addChildRemove();
+                            line.remove();
+                        }
+                }
+
+                object.remove();
+            }
 
             $("#showObject").click(function()
             {
                 console.log(canvas.getActiveObject());
             });
 
-        });
+            $("#renderAll").click(function()
+            {
+                refreshChildren();
+                canvas.renderAll();
+            });
 
+            function refreshChildren() 
+            { 
+               /*
+               */
+               var items = canvas.getObjects();
+               for(var i = 0; i < items.length; i++) 
+               {
+                   var currItem = items[i];
+                   currItemCenter = currItem.getCenterPoint();
+
+                   if (currItem.addChild) 
+                   {
+                       if (currItem.addChild.from)
+                           currItem.addChild.from.forEach(function (line) {
+                               line.set({ 'x1': currItemCenter.x, 'y1': currItemCenter.y });
+                           })
+                       ;
+                       if (currItem.addChild.to)
+                            currItem.addChild.to.forEach(function (line) {
+                                line.set({ 'x2': currItemCenter.x, 'y2': currItemCenter.y });
+                           })
+                       ;
+                   }
+               }
+               canvas.renderAll();
+            }
+    });
     </script>
     <title>
       Vinu's perfect drawing tool!
@@ -315,6 +420,7 @@
               <input id="bringForward" type="button" name="btnBringForward" value="Bring forward" />
               <hr/>
               <input id="connectObject" type="button" name="btnConnectObject" value="Connect" />
+              <input id="addChild" type="button" name="btnAddChild" value="Add child" />
               <hr/>
               <input id="groupObjects" type="button" name="btnGroupObjects" value="Group selected objects" />
               <input id="ungroupObjects" type="button" name="btnUngroupObjects" value="Un-group objects" />
@@ -322,6 +428,7 @@
               <input id="selectAll" type="button" name="btnSelectAll" value="Select ALL" />
               <hr/>
               <input id="showObject" type="button" name="btnShowObject" value="Show selected object" />
+              <input id="renderAll" type="button" name="btnRenderAll" value="Render all" />
             </div>
         </div>
     </body>
