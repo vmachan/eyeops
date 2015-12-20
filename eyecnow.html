@@ -12,6 +12,17 @@
             var canvas = new fabric.Canvas('canvas');
             ['object:moving', 'object:scaling', 'object:rotating'].forEach(addChildMoveLine);
             canvas.on('mouse:up', refreshChildren);
+            // canvas.on('selection:created', restrictSelectionOps);
+
+            function restrictSelectionOps()
+            {
+                var objList = canvas.getActiveGroup();
+
+                objList.forEachObject(function(o) 
+                        {
+                          o.lockRotation = true;
+                        });
+            }
 
             $("#createBox").click(function()
             {
