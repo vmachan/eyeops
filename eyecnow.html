@@ -3,7 +3,7 @@
   <head>
     <script type="text/javascript" src="../usere/d3/d3.min.js"></script>
     <script type="text/javascript" src="../usere/jquery-2.1.4.min.js"></script>
-    <script src="fabric/dist/fabric.js"></script>
+    <script src="../fabric/dist/fabric.js"></script>
     <script>
         var objectList = [];
 
@@ -11,13 +11,14 @@
         {
             var canvas = new fabric.Canvas('canvas');
             ['object:moving', 'object:scaling', 'object:rotating'].forEach(addChildMoveLine);
+            canvas.on('mouse:up', refreshChildren);
 
             $("#createBox").click(function()
             {
                 var rect = new fabric.Rect(
                                        {
-                                         top: 100,
-                                         left: 100,
+                                         top: 200,
+                                         left: 200,
                                          width: 60,
                                          height: 70,
                                          fill: 'red'
@@ -30,10 +31,10 @@
             {
                 var objCircle = new fabric.Circle(
                                        {
-                                         radius: 20
+                                         radius: 40
                                         ,fill: 'green'
-                                        ,left: 100
-                                        ,top: 100
+                                        ,left: 300
+                                        ,top: 200
                                        }
                                       );
                 canvas.add(objCircle);
@@ -44,11 +45,11 @@
             {
                 var objTriangle = new fabric.Triangle(
                                        {
-                                         width: 20
-                                        ,height: 30
+                                         width: 80
+                                        ,height: 120
                                         ,fill: 'blue'
-                                        ,left: 50
-                                        ,top: 50
+                                        ,left: 350
+                                        ,top: 250
                                        }
                                       );
                 objectList.push(objTriangle);
@@ -121,8 +122,7 @@
             {
               var objList = canvas.getActiveGroup(),
                   group = new fabric.Group();
-              console.log("objList");
-              console.log(objList);
+
               objList.forEachObject(function(o) 
                       {
                         o.hasControls = false;
@@ -130,7 +130,6 @@
                         o.hasBorders = false;
                         if (o.type == 'line') 
                         {
-                          // console.log('Selected line');
                           o.lockRotation = false;
                           o.lockMovementX = false;
                           o.lockMovementY = false;
@@ -144,15 +143,11 @@
               group.set('height', objList.height);
               group.set({ originX: objList.originX, originY: objList.originY });
               canvas.add(group);
-              console.log("group");
-              console.log(group);
             });
 
             $("#ungroupObjects").click(function()
             {
                var objGroup = canvas.getActiveObject();
-               console.log("objGroup");
-               console.log(objGroup);
                if (objGroup) {
                  var items = objGroup._objects;
                  objGroup._restoreObjectsState();
@@ -163,8 +158,6 @@
                    {
                      obj = items[i].clone(function(x) 
                            { 
-                             console.log("in path"); 
-                             console.log(x);
                              obj = x;
                              obj.hasControls = true; // items[i].hasControls = true;
                              obj.selectable = true;  // items[i].selectable = true;
@@ -242,7 +235,7 @@
             {
                 canvas.off('object:selected', addChildLine);
 
-                var fromObject = canvas.addChild.start; console.log(fromObject);
+                var fromObject = canvas.addChild.start; // console.log(fromObject);
                 var toObject = options.target;
 
                 var from = fromObject.getCenterPoint();
@@ -278,44 +271,31 @@
                 canvas.addChild = undefined;
             }
 
-            function addChildMoveLine(event) {
+            function addChildMoveLine(event) 
+            {
                 canvas.on(event, function (options) {
                     var object = options.target;
                     var objectCenter = object.getCenterPoint();
 
                     // udpate lines (if any)
-                    if (object.type != 'group') {
-                      if (object.addChild) {
-                          if (object.addChild.from)
-                              object.addChild.from.forEach(function (line) {
-                                  line.set({ 'x1': objectCenter.x, 'y1': objectCenter.y });
-                              })
-                              if (object.addChild.to)
-                                  object.addChild.to.forEach(function (line) {
-                                      line.set({ 'x2': objectCenter.x, 'y2': objectCenter.y });
-                                  })
-                      }
-                    } else {
-                      console.log("group found");
-
-                      var items = object.getObjects();
-                      for(var i = 0; i < items.length; i++) {
-                          var currItem = items[i];
-                          currItemCenter = currItem.getCenterPoint();
-
-                          if (currItem.addChild) {
-                              if (currItem.addChild.from)
-                                  currItem.addChild.from.forEach(function (line) {
-                                      line.set({ 'x1': currItemCenter.x, 'y1': currItemCenter.y });
-                                  })
-                                  if (currItem.addChild.to)
-                                      currItem.addChild.to.forEach(function (line) {
-                                          line.set({ 'x2': currItemCenter.x, 'y2': currItemCenter.y });
-                                      })
-                          }
-                      }
+                    if (object.type != 'group')
+                    {
+                        if (object.addChild)
+                        {
+                            if (object.addChild.from)
+                                object.addChild.from.forEach(function (line) {
+                                    line.set({ 'x1': objectCenter.x, 'y1': objectCenter.y });
+                                })
+                                if (object.addChild.to)
+                                    object.addChild.to.forEach(function (line) {
+                                        line.set({ 'x2': objectCenter.x, 'y2': objectCenter.y });
+                                    })
+                        }
+                    } 
+                    else 
+                    {
+                        console.log("group found");
                     }
-                    canvas.renderAll();
                 });
             }
 
@@ -353,7 +333,6 @@
                             line.remove();
                         }
                 }
-
                 object.remove();
             }
 
@@ -371,24 +350,46 @@
             function refreshChildren() 
             { 
                var items = canvas.getObjects();
-               for(var i = 0; i < items.length; i++) 
+               var actGroup = canvas.getActiveGroup();
+               if (actGroup)
                {
-                   var currItem = items[i];
-                   currItemCenter = currItem.getCenterPoint();
+                   canvas.discardActiveGroup();
 
-                   if (currItem.addChild) 
+                   for(var i = 0; i < items.length; i++) 
                    {
-                       if (currItem.addChild.from)
-                           currItem.addChild.from.forEach(function (line) {
-                               line.set({ 'x1': currItemCenter.x, 'y1': currItemCenter.y });
-                           })
-                       ;
-                       if (currItem.addChild.to)
-                            currItem.addChild.to.forEach(function (line) {
-                                line.set({ 'x2': currItemCenter.x, 'y2': currItemCenter.y });
-                           })
-                       ;
+                       var currItem = items[i];
+
+                       currItemCenter = currItem.getCenterPoint();
+
+                       if (currItem.addChild) 
+                       {
+                           if (currItem.addChild.from)
+                               currItem.addChild.from.forEach(function (line) {
+                                   line.set({ 'x1': currItemCenter.x, 'y1': currItemCenter.y });
+                               })
+                           ;
+                           if (currItem.addChild.to)
+                                currItem.addChild.to.forEach(function (line) {
+                                   line.set({ 'x2': currItemCenter.x, 'y2': currItemCenter.y });
+                               })
+                           ;
+                       }
                    }
+                   canvas.setActiveGroup
+                   (
+                       new fabric.Group(
+                                           actGroup.getObjects()
+                                          ,{ originX: 'center', originY: 'center' }
+                                       )
+                   );
+                   //Set individial objects active
+                   actGroup.forEachObject
+                   (
+                       function(o) 
+                       {
+                           o.set('active', true);
+                       }
+                   );
                }
                canvas.renderAll();
             }
