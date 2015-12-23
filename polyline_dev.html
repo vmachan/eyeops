@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>PolyLine</title>
+  <script type="text/javascript" src="../usere/d3/d3.min.js"></script>
+  <script type="text/javascript" src="../usere/jquery-2.1.4.min.js"></script>
+  <script src="../fabric/dist/fabric.js"></script>
+    
+  <style type="text/css">
+    .canvas {
+    border: 1px solid black;
+  }
+  </style>
+
+<script type="text/javascript">
+$(document).ready(function()
+{
+    var roof = null;
+    var roofPoints = [];
+    var lines = [];
+    var lineCounter = 0;
+    var drawingObject = {};
+    drawingObject.type = "";
+    drawingObject.background = "";
+    drawingObject.border = "";
+
+    function Point(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    fabric.util.addListener(window, 'keyup', function (e) 
+    {
+        var pos = canvas.getPointer(e);
+
+        if (e.keyCode === 27) // ESCAPE key
+        {
+            if (drawingObject.type == "roof")
+            {
+                drawingObject.type = "";
+                canvas.remove(lines[lineCounter - 1]);
+                lines.forEach(function(i) { canvas.remove(i);});
+                
+                roof = makeRoof(roofPoints);
+                canvas.add(roof);
+                canvas.renderAll();
+            } 
+        }
+    });
+
+    $("#startPolyline").click(function()
+    {
+        if (drawingObject.type == "roof") {
+            drawingObject.type = "";
+            canvas.remove(lines[lineCounter - 1]);
+            lines.forEach(function(i) { canvas.remove(i);});
+            
+            roof = makeRoof(roofPoints);
+            canvas.add(roof);
+            canvas.renderAll();
+        } else {
+            drawingObject.type = "roof"; // roof type
+        }
+    });
+
+    $("#showShape").click(function()
+    {
+        console.log(roof);
+        var offset = $('#canvas').offset();
+        roof.setCoords();
+        translatedPoints = roof.get("points");
+        translatedPoints.forEach(function(p) {
+          tx = roof.getCenterPoint().x + p.x;
+          ty = roof.getCenterPoint().y + p.y;
+          var pos = fabric.util.rotatePoint(
+              new fabric.Point(tx, ty),
+              new fabric.Point(roof.getCenterPoint().x, roof.getCenterPoint().y),
+              fabric.util.degreesToRadians(roof.angle)
+          );
+          // $('#txtCursor').val(roof.getCenterPoint().x + "," + roof.getCenterPoint().y);
+          $('#txtCursor').val(p.x + "," + p.y + "|" + pos.x + "," + pos.y);
+          canvas.getContext().strokeRect(pos.x - 5, pos.y - 5, 10, 10);
+        });
+    });
+    $("#selectAll").click(function()
+    {
+      var objs = canvas.getObjects().map(function(o) {
+        return o.set('active', true);
+      });
+
+      var group = new fabric.Group(objs, {
+        originX: 'center', 
+        originY: 'center'
+      });
+
+      canvas._activeObject = null;
+
+      canvas.setActiveGroup(group.setCoords()).renderAll();
+    });
+
+    // canvas Drawing
+    var canvas = new fabric.Canvas('canvas');
+    var x = 0;
+    var y = 0;
+
+    canvas.on('mouse:down', function (options) 
+    {
+        $('#txtCursor').val(x + "," + y);
+        if (drawingObject.type == "roof") 
+        {
+            canvas.selection = false;
+            setStartingPoint(options); // set x,y
+            console.log(x + "," + y);
+            roofPoints.push(new Point(x, y));
+            var points = [x, y, x, y];
+            lines.push(new fabric.Line(points, 
+            {
+                strokeWidth: 1,
+                selectable: false,
+                stroke: 'red'
+            }));
+            // .setOriginX(x).setOriginY(y)); -- THIS WAS CAUSING THE ORIGIN TO BE SET TO 0,0 TOP LEFT
+            canvas.add(lines[lineCounter]);
+            lineCounter++;
+            canvas.on('mouse:up', function (options) 
+            {
+                canvas.selection = true;
+            });
+            canvas.renderAll();
+        }
+    });
+    canvas.on('mouse:move', function (options) 
+    {
+        $('#txtCursor').val(x + "," + y);
+        if (lines[0] !== null && drawingObject.type == "roof") 
+        {
+            setStartingPoint(options);
+            lines[lineCounter - 1].set({
+                x2: x,
+                y2: y
+            });
+            canvas.renderAll();
+        }
+    });
+
+    function setStartingPoint(options) 
+    {
+        var offset = $('#canvas').offset();
+        x = options.e.pageX - offset.left;
+        y = options.e.pageY - offset.top;
+    }
+
+    function makeRoof(roofPoints) 
+    {
+        var left = findLeftPaddingForRoof(roofPoints);
+        var top = findTopPaddingForRoof(roofPoints);
+        var roof = new fabric.Polyline(roofPoints, 
+        {
+            stroke: 'teal',
+            fill: null
+        });
+        roof.set({
+            left: left,
+            top: top,
+            originX: 'left',
+            originY: 'top',
+            lockScalingX: true,
+            lockScalingY: true
+        });
+
+        return roof;
+    }
+
+    function findTopPaddingForRoof(roofPoints) 
+    {
+        var result = 999999;
+        for (var f = 0; f < lineCounter; f++) 
+        {
+            if (roofPoints[f].y < result) 
+            {
+                result = roofPoints[f].y;
+            }
+        }
+        return Math.abs(result);
+    }
+
+    function findLeftPaddingForRoof(roofPoints) 
+    {
+        var result = 999999;
+        for (var i = 0; i < lineCounter; i++) 
+        {
+            if (roofPoints[i].x < result) 
+            {
+                result = roofPoints[i].x;
+            }
+        }
+        return Math.abs(result);
+    }
+}); // End of (document).ready(function()
+
+</script>
+</head>
+<body>
+  <div class="canvas-container" style="width: 500px; height: 500px; position: relative; -webkit-user-select: none;">
+    <canvas id="canvas" class="canvas" width="500" height="500" style="position: absolute; width: 500px; height: 500px; left: 0px; top: 0px; -webkit-user-select: none;">
+    </canvas>
+    <input id="txtCursor" type="text" name="txtCursor" value=""/>
+    <input id="startPolyline" type="button" name="btnStartPolyLine" value="Start Polyline"/>
+    <input id="selectAll" type="button" name="btnSelectAll" value="Select All"/>
+    <input id="showShape" type="button" name="btnShowShape" value="Show Shape"/>
+  </div>
+</body>
+</html>
