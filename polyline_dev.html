@@ -25,6 +25,15 @@ $(document).ready(function()
     drawingObject.background = "";
     drawingObject.border = "";
     var vertexFocus = null;
+    var vertexDrag = false;
+    var selectedPolyLine = null;
+    var selectedPointInPolyLine = null;
+    var setPos = null;
+
+    // canvas Drawing
+    var canvas = new fabric.Canvas('canvas', { isDrawingMode: false, skipTargetFind: false });
+    var x = 0;
+    var y = 0;
 
     function Point(x, y) {
         this.x = x;
@@ -101,11 +110,6 @@ $(document).ready(function()
       canvas.setActiveGroup(group.setCoords()).renderAll();
     });
 
-    // canvas Drawing
-    var canvas = new fabric.Canvas('canvas', { isDrawingMode: false, skipTargetFind: false });
-    var x = 0;
-    var y = 0;
-
     canvas.on('mouse:down', function (options) 
     {
         setStartingPoint(options); // set x,y
@@ -131,12 +135,31 @@ $(document).ready(function()
             });
             canvas.renderAll();
         }
+        else
+        {
+            if (vertexDrag === true) 
+            {
+                vertexDrag = false;
+                selectedPolyLine = null;
+                selectedPointInPolyLine = null;
+            }
+            if (vertexFocus !== null)
+            {
+                vertexDrag = true;
+                vertexFocus.clone(function(tV) { canvas.add(tV) });
+                canvas.renderAll();
+                vertexFocus = null;
+            }
+        }
     });
+
     canvas.on('mouse:move', function (options) 
     {
         setStartingPoint(options); // set x,y
+
         $('#txtCursor').val(x + "," + y);
         // console.log(x + "," + y);
+
         if (lines[0] !== null && drawingObject.type == "roof") 
         {
             setStartingPoint(options);
@@ -147,11 +170,12 @@ $(document).ready(function()
         }
         else
         {
-            setPos = isMouseAtVertex(new Point(x, y));
-            if (setPos !== null)
+            setPos = checkIfMouseAtVertex(new Point(x, y));
+            if (vertexDrag === false)
             {
-                console.log("isMouseAtVertex");
-                if (vertexFocus == null) 
+                // console.log("NOT isMouseAtVertex");
+
+                if (vertexFocus == null && setPos !== null) 
                 {
                     vertexFocus = new fabric.Circle(
                                            {
@@ -164,42 +188,74 @@ $(document).ready(function()
                               );
                     canvas.add(vertexFocus);
                 }
+                else
+                {
+                    canvas.remove(vertexFocus);
+                    vertexFocus = null;
+                }                                  
             }
-            else
+            else if (vertexDrag === true)
             {
-                console.log("NOT isMouseAtVertex");
-                canvas.remove(vertexFocus);
-                vertexFocus = null;
+                // console.log("vertexDrag is TRUE");
+                dragVertex();
             }
         }
         canvas.renderAll();
     });
 
-    function isMouseAtVertex(mousePos) 
+    function checkIfMouseAtVertex(mousePos) 
     {
         isSet = null;
 
-        roof.setCoords();
-        var oPoints = roof.points; // Get array of points for this object/polyline
-
-        oPoints.forEach(function(p) {
-            tx = roof.getCenterPoint().x + p.x;
-            ty = roof.getCenterPoint().y + p.y;
-            var pos = fabric.util.rotatePoint(
-                new fabric.Point(tx, ty),
-                new fabric.Point(roof.getCenterPoint().x, roof.getCenterPoint().y),
-                fabric.util.degreesToRadians(roof.angle)
-            );
-            $('#txtCursor').val("pos.x:" + pos.x + "mousePos.x:" + mousePos.x);
-            if (   (pos.x + 2 >= mousePos.x && pos.x - 2 <= mousePos.x) 
-                && (pos.y + 2 >= mousePos.y && pos.y - 2 <= mousePos.y) 
-               )
+        canvas.getObjects().forEach(function(currObj)
             {
-                console.log("focused");
-                isSet = pos;
-            }
-        }); 
+                if (currObj.type === "polyline")
+                {
+                    currObj.setCoords();
+                    var oPoints = currObj.points; // Get array of points for this object/polyline
+
+                    oPoints.forEach(function(p) {
+                        tx = currObj.getCenterPoint().x + p.x;
+                        ty = currObj.getCenterPoint().y + p.y;
+                        var pos = fabric.util.rotatePoint(
+                            new fabric.Point(tx, ty),
+                            new fabric.Point(currObj.getCenterPoint().x, currObj.getCenterPoint().y),
+                            fabric.util.degreesToRadians(currObj.angle)
+                        );
+                        $('#txtCursor').val("pos.x:" + pos.x + "mousePos.x:" + mousePos.x);
+                        if (   (pos.x + 5 >= mousePos.x && pos.x - 5 <= mousePos.x) 
+                            && (pos.y + 5 >= mousePos.y && pos.y - 5 <= mousePos.y) 
+                           )
+                        {
+                            // console.log("focused");
+                            isSet = pos;
+                            selectedPolyLine = currObj;
+                            selectedPointInPolyLine = oPoints.indexOf(p);
+                        }
+                    });
+                }
+            });
         return isSet;
+    }
+
+    function dragVertex()
+    {
+        // console.log("in dragVertex");
+        console.log(selectedPolyLine.points[selectedPointInPolyLine]);
+        console.log(currMouseX + "," + currMouseY);
+
+        selectedPolyLine.points[selectedPointInPolyLine].x = x - selectedPolyLine.getCenterPoint().x;
+        selectedPolyLine.points[selectedPointInPolyLine].y = y - selectedPolyLine.getCenterPoint().y;
+
+        var dims = selectedPolyLine.getBoundingRect();
+        console.log(dims);
+        selectedPolyLine.setWidth(dims.width);
+        selectedPolyLine.setHeight(dims.height);
+        selectedPolyLine.left = dims.left;
+        selectedPolyLine.top = dims.top;
+
+        selectedPolyLine.setCoords();
+        canvas.renderAll();
     }
 
     canvas.on("object:over", function () {
@@ -214,6 +270,8 @@ $(document).ready(function()
         var offset = $('#canvas').offset();
         x = options.e.pageX - offset.left;
         y = options.e.pageY - offset.top;
+        currMouseX = x;
+        currMouseY = y;
     }
 
     function makeRoof(roofPoints) 
