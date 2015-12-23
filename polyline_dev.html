@@ -24,6 +24,7 @@ $(document).ready(function()
     drawingObject.type = "";
     drawingObject.background = "";
     drawingObject.border = "";
+    var vertexFocus = null;
 
     function Point(x, y) {
         this.x = x;
@@ -78,9 +79,10 @@ $(document).ready(function()
               new fabric.Point(roof.getCenterPoint().x, roof.getCenterPoint().y),
               fabric.util.degreesToRadians(roof.angle)
           );
-          // $('#txtCursor').val(roof.getCenterPoint().x + "," + roof.getCenterPoint().y);
           $('#txtCursor').val(p.x + "," + p.y + "|" + pos.x + "," + pos.y);
           canvas.getContext().strokeRect(pos.x - 5, pos.y - 5, 10, 10);
+          // canvas.getContext().arc(pos.x, pos.y, 10, 0, 2*Math.PI);
+          // canvas.getContext().stroke();
         });
     });
     $("#selectAll").click(function()
@@ -100,17 +102,17 @@ $(document).ready(function()
     });
 
     // canvas Drawing
-    var canvas = new fabric.Canvas('canvas');
+    var canvas = new fabric.Canvas('canvas', { isDrawingMode: false, skipTargetFind: false });
     var x = 0;
     var y = 0;
 
     canvas.on('mouse:down', function (options) 
     {
+        setStartingPoint(options); // set x,y
         $('#txtCursor').val(x + "," + y);
         if (drawingObject.type == "roof") 
         {
             canvas.selection = false;
-            setStartingPoint(options); // set x,y
             console.log(x + "," + y);
             roofPoints.push(new Point(x, y));
             var points = [x, y, x, y];
@@ -132,7 +134,9 @@ $(document).ready(function()
     });
     canvas.on('mouse:move', function (options) 
     {
+        setStartingPoint(options); // set x,y
         $('#txtCursor').val(x + "," + y);
+        // console.log(x + "," + y);
         if (lines[0] !== null && drawingObject.type == "roof") 
         {
             setStartingPoint(options);
@@ -140,8 +144,69 @@ $(document).ready(function()
                 x2: x,
                 y2: y
             });
-            canvas.renderAll();
         }
+        else
+        {
+            setPos = isMouseAtVertex(new Point(x, y));
+            if (setPos !== null)
+            {
+                console.log("isMouseAtVertex");
+                if (vertexFocus == null) 
+                {
+                    vertexFocus = new fabric.Circle(
+                                           {
+                                             radius: 10
+                                            ,fill: 'red'
+                                            ,opacity: 0.5
+                                            ,left: setPos.x - 10
+                                            ,top: setPos.y - 10
+                                           }
+                              );
+                    canvas.add(vertexFocus);
+                }
+            }
+            else
+            {
+                console.log("NOT isMouseAtVertex");
+                canvas.remove(vertexFocus);
+                vertexFocus = null;
+            }
+        }
+        canvas.renderAll();
+    });
+
+    function isMouseAtVertex(mousePos) 
+    {
+        isSet = null;
+
+        roof.setCoords();
+        var oPoints = roof.points; // Get array of points for this object/polyline
+
+        oPoints.forEach(function(p) {
+            tx = roof.getCenterPoint().x + p.x;
+            ty = roof.getCenterPoint().y + p.y;
+            var pos = fabric.util.rotatePoint(
+                new fabric.Point(tx, ty),
+                new fabric.Point(roof.getCenterPoint().x, roof.getCenterPoint().y),
+                fabric.util.degreesToRadians(roof.angle)
+            );
+            $('#txtCursor').val("pos.x:" + pos.x + "mousePos.x:" + mousePos.x);
+            if (   (pos.x + 2 >= mousePos.x && pos.x - 2 <= mousePos.x) 
+                && (pos.y + 2 >= mousePos.y && pos.y - 2 <= mousePos.y) 
+               )
+            {
+                console.log("focused");
+                isSet = pos;
+            }
+        });
+        return isSet;
+    }
+
+    canvas.on("object:over", function () {
+        console.log("object over");
+    });
+    canvas.on("object:out", function () {
+        console.log("object out");
     });
 
     function setStartingPoint(options) 
@@ -165,6 +230,8 @@ $(document).ready(function()
             top: top,
             originX: 'left',
             originY: 'top',
+            perPixelTargetFind: true,
+            // selectable: false,
             lockScalingX: true,
             lockScalingY: true
         });
