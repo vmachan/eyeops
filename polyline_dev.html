@@ -40,6 +40,20 @@ $(document).ready(function()
         this.y = y;
     }
 
+    fabric.util.addListener(window, 'dblclick', function(e)
+    { 
+        if (drawingObject.type == "roof")
+        {
+            drawingObject.type = "";
+            canvas.remove(lines[lineCounter - 1]);
+            lines.forEach(function(i) { canvas.remove(i);});
+            
+            roof = makeRoof(roofPoints);
+            canvas.add(roof);
+            canvas.renderAll();
+        } 
+    });
+
     fabric.util.addListener(window, 'keyup', function (e) 
     {
         var pos = canvas.getPointer(e);
@@ -52,6 +66,7 @@ $(document).ready(function()
                 canvas.remove(lines[lineCounter - 1]);
                 lines.forEach(function(i) { canvas.remove(i);});
                 
+                console.log(roofPoints);
                 roof = makeRoof(roofPoints);
                 canvas.add(roof);
                 canvas.renderAll();
@@ -61,7 +76,8 @@ $(document).ready(function()
 
     $("#startPolyline").click(function()
     {
-        if (drawingObject.type == "roof") {
+        if (drawingObject.type == "roof")
+        {
             drawingObject.type = "";
             canvas.remove(lines[lineCounter - 1]);
             lines.forEach(function(i) { canvas.remove(i);});
@@ -69,7 +85,9 @@ $(document).ready(function()
             roof = makeRoof(roofPoints);
             canvas.add(roof);
             canvas.renderAll();
-        } else {
+        }
+        else
+        {
             drawingObject.type = "roof"; // roof type
         }
     });
@@ -78,27 +96,30 @@ $(document).ready(function()
     {
         console.log(roof);
         var offset = $('#canvas').offset();
+        roof.getBoundingRect();
         roof.setCoords();
         translatedPoints = roof.get("points");
-        translatedPoints.forEach(function(p) {
-          tx = roof.getCenterPoint().x + p.x;
-          ty = roof.getCenterPoint().y + p.y;
-          var pos = fabric.util.rotatePoint(
-              new fabric.Point(tx, ty),
-              new fabric.Point(roof.getCenterPoint().x, roof.getCenterPoint().y),
-              fabric.util.degreesToRadians(roof.angle)
-          );
-          $('#txtCursor').val(p.x + "," + p.y + "|" + pos.x + "," + pos.y);
-          canvas.getContext().strokeRect(pos.x - 5, pos.y - 5, 10, 10);
-          // canvas.getContext().arc(pos.x, pos.y, 10, 0, 2*Math.PI);
-          // canvas.getContext().stroke();
+        translatedPoints.forEach(function(p)
+        {
+            tx = roof.getCenterPoint().x + p.x;
+            ty = roof.getCenterPoint().y + p.y;
+            var pos = fabric.util.rotatePoint(
+                new fabric.Point(tx, ty),
+                new fabric.Point(roof.getCenterPoint().x, roof.getCenterPoint().y),
+                fabric.util.degreesToRadians(roof.angle)
+            );
+            $('#txtCursor').val(p.x + "," + p.y + "|" + pos.x + "," + pos.y);
+            $('#cursor').text(p.x + "," + p.y + "|" + pos.x + "," + pos.y);
+            canvas.getContext().strokeRect(pos.x - 5, pos.y - 5, 10, 10);
         });
     });
+
     $("#selectAll").click(function()
     {
-      var objs = canvas.getObjects().map(function(o) {
-        return o.set('active', true);
-      });
+      var objs = canvas.getObjects().map(function(o) 
+                 {
+                     return o.set('active', true);
+                 });
 
       var group = new fabric.Group(objs, {
         originX: 'center', 
@@ -117,7 +138,7 @@ $(document).ready(function()
         if (drawingObject.type == "roof") 
         {
             canvas.selection = false;
-            console.log(x + "," + y);
+            // console.log(x + "," + y);
             roofPoints.push(new Point(x, y));
             var points = [x, y, x, y];
             lines.push(new fabric.Line(points, 
@@ -140,6 +161,29 @@ $(document).ready(function()
             if (vertexDrag === true) 
             {
                 vertexDrag = false;
+
+                $("#showShape").trigger('click');
+                canvas.remove(roof);
+                canvas.remove(vertexFocus);
+
+                translatedPoints = roof.get("points");
+                for (tI = 0; tI < translatedPoints.length; tI++)
+                {
+                    tx = roof.getCenterPoint().x + translatedPoints[tI].x;
+                    ty = roof.getCenterPoint().y + translatedPoints[tI].y;
+                    var pos = fabric.util.rotatePoint(
+                        new fabric.Point(tx, ty),
+                        new fabric.Point(roof.getCenterPoint().x, roof.getCenterPoint().y),
+                        fabric.util.degreesToRadians(roof.angle)
+                    );
+                    translatedPoints[tI].x = pos.x;
+                    translatedPoints[tI].y = pos.y;
+                }
+                roof.points = translatedPoints;
+                roof = makeRoof(translatedPoints);
+
+                canvas.add(roof);
+                canvas.renderAll();
                 selectedPolyLine = null;
                 selectedPointInPolyLine = null;
             }
@@ -158,6 +202,7 @@ $(document).ready(function()
         setStartingPoint(options); // set x,y
 
         $('#txtCursor').val(x + "," + y);
+        $('#cursor').text(x + "," + y);
         // console.log(x + "," + y);
 
         if (lines[0] !== null && drawingObject.type == "roof") 
@@ -173,8 +218,6 @@ $(document).ready(function()
             setPos = checkIfMouseAtVertex(new Point(x, y));
             if (vertexDrag === false)
             {
-                // console.log("NOT isMouseAtVertex");
-
                 if (vertexFocus == null && setPos !== null) 
                 {
                     vertexFocus = new fabric.Circle(
@@ -196,7 +239,6 @@ $(document).ready(function()
             }
             else if (vertexDrag === true)
             {
-                // console.log("vertexDrag is TRUE");
                 dragVertex();
             }
         }
@@ -222,7 +264,9 @@ $(document).ready(function()
                             new fabric.Point(currObj.getCenterPoint().x, currObj.getCenterPoint().y),
                             fabric.util.degreesToRadians(currObj.angle)
                         );
-                        $('#txtCursor').val("pos.x:" + pos.x + "mousePos.x:" + mousePos.x);
+                        // $('#txtCursor').val("pos.x:" + pos.x + "mousePos.x:" + mousePos.x);
+                        $('#cursor').text("mousePos.x:" + mousePos.x + "mousePos.y:" + mousePos.y);
+
                         if (   (pos.x + 5 >= mousePos.x && pos.x - 5 <= mousePos.x) 
                             && (pos.y + 5 >= mousePos.y && pos.y - 5 <= mousePos.y) 
                            )
@@ -241,19 +285,25 @@ $(document).ready(function()
     function dragVertex()
     {
         // console.log("in dragVertex");
-        console.log(selectedPolyLine.points[selectedPointInPolyLine]);
-        console.log(currMouseX + "," + currMouseY);
+        // console.log(selectedPolyLine.points[selectedPointInPolyLine]);
+        // console.log(currMouseX + "," + currMouseY);
 
         selectedPolyLine.points[selectedPointInPolyLine].x = x - selectedPolyLine.getCenterPoint().x;
         selectedPolyLine.points[selectedPointInPolyLine].y = y - selectedPolyLine.getCenterPoint().y;
-
+/*
         var dims = selectedPolyLine.getBoundingRect();
         console.log(dims);
         selectedPolyLine.setWidth(dims.width);
         selectedPolyLine.setHeight(dims.height);
         selectedPolyLine.left = dims.left;
         selectedPolyLine.top = dims.top;
+        selectedPolyLine.setCoords();
 
+        canvas.remove(roof);
+        roof = null;
+        roof = makeRoof(selectedPolyLine.points);
+        canvas.add(roof);
+*/
         selectedPolyLine.setCoords();
         canvas.renderAll();
     }
@@ -278,6 +328,8 @@ $(document).ready(function()
     {
         var left = findLeftPaddingForRoof(roofPoints);
         var top = findTopPaddingForRoof(roofPoints);
+        console.log("makeRoof - left:" + left + ", top:" + top);
+        console.log(roofPoints);
         var roof = new fabric.Polyline(roofPoints, 
         {
             stroke: 'teal',
@@ -293,7 +345,6 @@ $(document).ready(function()
             lockScalingX: true,
             lockScalingY: true
         });
-
         return roof;
     }
 
@@ -334,6 +385,8 @@ $(document).ready(function()
     <input id="startPolyline" type="button" name="btnStartPolyLine" value="Start Polyline"/>
     <input id="selectAll" type="button" name="btnSelectAll" value="Select All"/>
     <input id="showShape" type="button" name="btnShowShape" value="Show Shape"/>
+    <hr/>
+    <label id="cursor"></label>
   </div>
 </body>
 </html>
