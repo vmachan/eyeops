@@ -68,7 +68,6 @@ $(document).ready(function()
                 canvas.remove(lines[lineCounter - 1]);
                 lines.forEach(function(i) { canvas.remove(i);});
                 
-                console.log(roofPoints);
                 roof = makeRoof(roofPoints);
                 canvas.add(roof);
                 canvas.renderAll();
@@ -163,7 +162,7 @@ $(document).ready(function()
             {
                 vertexDrag = false;
 
-                $("#showShape").trigger('click');
+                // $("#showShape").trigger('click');
                 canvas.remove(roof);
                 canvas.remove(vertexFocus);
                 vertexFocus = null;
@@ -225,11 +224,13 @@ $(document).ready(function()
                                              radius: 10
                                             ,fill: 'red'
                                             ,opacity: 0.5
-                                            ,left: setPos.x - 10
-                                            ,top: setPos.y - 10
+                                            ,originX: 'center'
+                                            ,originY: 'center'
+                                            ,left: setPos.x
+                                            ,top: setPos.y
                                            }
                               );
-                    vertexFocus.animate('radius', '20', 1000);
+                    setTimeout(animateVertexCircle(vertexFocus), 1);
                     canvas.add(vertexFocus);
                 }
                 else
@@ -267,8 +268,8 @@ $(document).ready(function()
                         );
                         $('#cursor').text("mousePos.x:" + mousePos.x + "mousePos.y:" + mousePos.y);
 
-                        if (   (pos.x + 5 >= mousePos.x && pos.x - 5 <= mousePos.x) 
-                            && (pos.y + 5 >= mousePos.y && pos.y - 5 <= mousePos.y) 
+                        if (   (pos.x + 10 >= mousePos.x && pos.x - 10 <= mousePos.x) 
+                            && (pos.y + 10 >= mousePos.y && pos.y - 10 <= mousePos.y) 
                            )
                         {
                             // console.log("focused");
@@ -294,11 +295,10 @@ $(document).ready(function()
                                  radius: 10
                                 ,fill: 'red'
                                 ,opacity: 0.5
-                                ,left: currMouseX - 10
-                                ,top: currMouseY - 10
+                                ,left: setPos.x - 10
+                                ,top: setPos.y - 10
                                }
                   );
-        vertexFocus.animate('radius', '25');
         canvas.add(vertexFocus);
         canvas.renderAll();
     }
@@ -366,6 +366,22 @@ $(document).ready(function()
         }
         return Math.abs(result);
     }
+
+    // Animate 
+    // 1. Circles at vertex selection
+    function animateVertexCircle(thisCircle)
+    {
+        thisCircle.animate('radius', "+=" + 1, 
+                          { 
+                              from: 2
+                             ,duration: 1000
+                             ,abort: function() { if (vertexFocus === null) return true; }
+                             ,onChange: canvas.renderAll.bind(canvas)
+                             ,onComplete: function() { animateVertexCircle(thisCircle); } 
+                          });
+        canvas.renderAll();
+    }
+
 }); // End of (document).ready(function()
 
 </script>
