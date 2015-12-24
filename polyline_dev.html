@@ -207,10 +207,13 @@ $(document).ready(function()
         if (lines[0] !== null && drawingObject.type == "roof") 
         {
             setStartingPoint(options);
-            lines[lineCounter - 1].set({
-                x2: x,
-                y2: y
-            });
+            if (lines.length > 0)
+            {
+                lines[lineCounter - 1].set({
+                    x2: x,
+                    y2: y
+                });
+            }
         }
         else
         {
@@ -290,17 +293,20 @@ $(document).ready(function()
         selectedPolyLine.setCoords();
         canvas.remove(vertexFocus);
         vertexFocus = null;
-        vertexFocus = new fabric.Circle(
-                               {
-                                 radius: 10
-                                ,fill: 'red'
-                                ,opacity: 0.5
-                                ,left: setPos.x - 10
-                                ,top: setPos.y - 10
-                               }
-                  );
-        canvas.add(vertexFocus);
-        canvas.renderAll();
+        if (setPos !== null)
+        {
+            vertexFocus = new fabric.Circle(
+                                   {
+                                     radius: 10
+                                    ,fill: 'red'
+                                    ,opacity: 0.5
+                                    ,left: setPos.x - 10
+                                    ,top: setPos.y - 10
+                                   }
+                      );
+            canvas.add(vertexFocus);
+            canvas.renderAll();
+        }
     }
 
     canvas.on("object:over", function () {
