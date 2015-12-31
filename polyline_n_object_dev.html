@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script type="text/javascript" src="../usere/d3/d3.min.js"></script>
+    <script type="text/javascript" src="../usere/jquery-2.1.4.min.js"></script>
+    <script src="../fabric/dist/fabric.js"></script>
+    <script>
+       var objectList = [];
+       function guid()
+       {
+         function s4()
+         {
+           return Math.floor((1 + Math.random()) * 0x10000)
+             .toString(16)
+             .substring(1);
+         }
+         return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+           s4() + '-' + s4() + s4() + s4();
+       }
+
+       $(document).ready(function()
+       {
+           var canvas = new fabric.Canvas('canvas');
+
+           // ['object:moving', 'object:scaling', 'object:rotating'].forEach(addChildMovePolyLine);
+           ['object:moving', 'object:scaling', 'object:rotating'].forEach(movePolyLine);
+
+           $("#createBox").click(function()
+           {
+               var rect = new fabric.Rect(
+                                      {
+                                        top: 200,
+                                        left: 200,
+                                        width: 60,
+                                        height: 70,
+                                        fill: 'red'
+                                      }
+                                     );
+               rect.id = guid();
+               objectList.push(rect);
+               canvas.add(rect);
+           });
+           $("#createCircle").click(function()
+           {
+               var objCircle = new fabric.Circle(
+                                      {
+                                        radius: 40
+                                       ,fill: 'green'
+                                       ,left: 300
+                                       ,top: 200
+                                      }
+                                     );
+               objCircle.id = guid();
+               objectList.push(objCircle);
+               canvas.add(objCircle);
+           });
+
+           $('html').keyup(function(e)
+               {
+                   if (e.keyCode == 46)
+                   {
+                       var objDel = canvas.getActiveObject();
+                       if (objDel != null) 
+                       {
+                           // alert("selected object is " + objDel);
+                           // objDel.remove();
+                           // canvas.remove(objDel);
+                           deleteObject(objDel);
+                   }
+               }
+           });
+
+           function deleteObject(delThis) {
+               var object = delThis;
+
+               // remove lines (if any)
+               if (object.addChild) {
+                   if (object.addChild.from)
+                       // step backwards since we are deleting
+                       for (var i = object.addChild.from.length - 1; i >= 0; i--) {
+                           var line = object.addChild.from[i];
+                           line.addChildRemove();
+                           line.remove();
+                       }
+                   if (object.addChild.to)
+                       for (var i = object.addChild.to.length - 1; i >= 0; i--) {
+                           var line = object.addChild.to[i];
+                           line.addChildRemove();
+                           line.remove();
+                       }
+               }
+               for (ctr = 0; ctr < canvas._objects.length; ctr++)
+               {
+                   if (delThis.id == canvas._objects[ctr].id)
+                   {
+                       object.remove();
+                       canvas.remove(delThis);
+                   }
+               }
+               for (ctr = 0; ctr < objectList.length; ctr++)
+               {
+                   if (delThis.id == objectList[ctr].id)
+                   {
+                       objectList.pop(delThis);
+                       canvas.remove(delThis);
+                   }
+               }
+               delThis = null;
+           }
+
+
+           $("#dumpCanvasObj").click(function()
+           {
+               console.log(canvas);
+           });
+
+           $("#showObject").click(function()
+           {
+               console.log(canvas.getActiveObject());
+           });
+           $("#renderAll").click(function()
+           {
+               // refreshChildren();
+               canvas.renderAll();
+           });
+
+   // START OF POLYLINE CHANGES 
+           function Point(x, y) {
+               this.x = x;
+               this.y = y;
+           }
+
+           $("#addChildWithPolyLine").click(function()
+           {
+               var temp = canvas.getActiveObject();
+               canvas.addChild = {
+                   start: temp
+               }
+               // for when addChild is clicked twice
+               canvas.off('object:selected', addPolyLine /* addChildWithPolyLine */);
+               canvas.on('object:selected', addPolyLine /* addChildWithPolyLine */);
+           });
+
+           function makePolyLine(coords) 
+           {
+               // console.log("in makePolyLine");
+
+               var objPolyLine = new fabric.Polyline(coords, {
+                   fill: 'teal',
+                   stroke: 'teal', // '#'+Math.floor(Math.random()*16777215).toString(16),
+                   strokeWidth: 2,
+                   hasControls: true,
+                   hasBorders: false,
+                   lockScalingX: true,
+                   lockScalingY: true,
+                   lockRotation: false,
+                   lockMovementX: false,
+                   lockMovementY: false,
+                   perPixelTargetFind: true,
+                   selectable: true,
+                   id: guid()
+               });
+               objPolyLine.id = guid();
+               // objPolyLine.fromNode = new Point(coords[0].x, coords[0].y);
+               // objPolyLine.toNode = new Point(coords[coords.length - 1].x, coords[coords.length - 1].y);
+               return objPolyLine;
+           }        
+
+           function addPolyLine(options) 
+           {
+               console.log("in addPolyLine");
+
+               canvas.off('object:selected', addPolyLine);
+
+               var fromObject = canvas.addChild.start; // console.log(fromObject);
+               var toObject = options.target;
+
+               var objPolyline = makePolyLine(
+                                              [
+                                                  new Point(fromObject.getCenterPoint().x
+                                                          , fromObject.getCenterPoint().y)
+                                                , new Point(toObject.getCenterPoint().x
+                                                          , toObject.getCenterPoint().y)
+                                              ]
+                                             );
+               objPolyline.fromNode = fromObject;
+               objPolyline.toNode = toObject;
+
+               objectList.push(objPolyline);
+               canvas.add(objPolyline);
+
+               objPolyline.sendToBack();
+               
+               fromObject.addChild = {
+                   // this retains the existing arrays (if there were any)
+                   from: (fromObject.addChild && fromObject.addChild.from) || [],
+                   to: (fromObject.addChild && fromObject.addChild.to)
+               }
+               fromObject.addChild.from.push(objPolyline);
+               toObject.addChild = {
+                   from: (toObject.addChild && toObject.addChild.from),
+                   to: (toObject.addChild && toObject.addChild.to) || []
+               }
+               toObject.addChild.to.push(objPolyline);
+
+               // to remove line references when the line gets removed
+               canvas.addChild = undefined;
+               canvas.renderAll();
+           }
+
+           function movePolyLine(event) 
+           {
+               canvas.on(event, function (options) {
+                   var object = options.target;
+                   var objectCenter = object.getCenterPoint();
+
+                   if (object.type != 'group')
+                   {
+                       if (object.addChild)
+                       {
+                           if (object.addChild.from)
+                               object.addChild.from.forEach(function (polyline, index, arr)
+                               {
+                                   console.log(polyline);
+                                   canvas.remove(polyline);
+                                   canvas.remove(polyline.toNode.addChild.to[0]);
+
+                                   curr = arr.splice(index, 1);
+                                   console.log(curr);
+
+                                   polyline.points[0].x = objectCenter.x;
+                                   polyline.points[0].y = objectCenter.y;
+                                   polyline.points[polyline.points.length - 1].x 
+                                       = curr[0].toNode.getCenterPoint().x;
+                                   polyline.points[polyline.points.length - 1].y
+                                       = curr[0].toNode.getCenterPoint().y;
+
+                                   // console.log("before makePolyLine for FROM");
+                                   curr = makePolyLine(polyline.points);
+                                   curr.fromNode = object;
+                                   curr.toNode = polyline.toNode;
+
+                                   objectList.push(curr);
+                                   arr.push(curr);
+                                   canvas.add(curr);
+                               })
+                           if (object.addChild.to)
+                               object.addChild.to.forEach(function (polyline, index, arr) {
+                                   canvas.remove(polyline);
+                                   canvas.remove(polyline.fromNode.addChild.from[0]);
+
+                                   curr = arr.splice(index, 1);
+
+                                   polyline.points[polyline.points.length - 1].x = objectCenter.x;
+                                   polyline.points[polyline.points.length - 1].y = objectCenter.y;
+                                   polyline.points[0].x = curr[0].fromNode.getCenterPoint().x;
+                                   polyline.points[0].y = curr[0].fromNode.getCenterPoint().y;
+
+                                   // console.log("before makePolyLine for TO");
+                                   curr = makePolyLine(polyline.points);
+                                   curr.toNode = object;
+                                   curr.fromNode = polyline.fromNode;
+
+                                   objectList.push(curr);
+                                   arr.push(curr);
+                                   canvas.add(curr);
+                               })
+                       }
+                   } 
+                   else 
+                   {
+                       console.log("group found");
+                   }
+
+                   canvas.renderAll();
+               });
+           }
+
+           // END OF POLYLINE CHANGES 
+
+           canvas.on('mouse:move', function (options) 
+           {
+               var offset = $('#canvas').offset();
+               x = options.e.pageX - offset.left;
+               y = options.e.pageY - offset.top;
+
+               $('#txtCursor').val(x + "," + y);
+               $('#cursor').text(x + "," + y);
+
+               canvas.renderAll();
+           });
+        });
+    </script>
+    <title>
+      Polyline with moving objects - Vinu's perfect drawing tool!
+    </title>
+    </head>
+    <body>
+        <div id="main" style="width: 1000px; overflow: hidden;">
+            <div id="drawarea" style="width: 800px; background-color: #FFEEFF; float: left;">
+              <canvas id="canvas" 
+                      width="800"
+                      height="600" 
+                      style="border:1px solid #000000;">
+              </canvas>
+            </div>
+            <div id="sidebar" align="center" style="width: 160px; background-color: #EEEEEE; float: left; margin-left: 10px;"> 
+              <input id="createBox" type="button" name="btnCreateBox" value="Add box" />
+              <input id="createCircle" type="button" name="btnCreateCircle" value="Add circle" />
+              <input id="addChildWithPolyLine" type="button" name="btnAddChildWithPolyLine" value="Add child with Polyline" />
+              <hr/>
+              <input id="showObject" type="button" name="btnShowObject" value="Show selected object" />
+              <input id="renderAll" type="button" name="btnRenderAll" value="Render All" />
+              <input id="dumpCanvasObj" type="button" name="btnDumpCanvasObj" value="Dump canvas object" />
+              <label id="cursor"></label>
+            </div>
+        </div>
+    </body>
+</html>
