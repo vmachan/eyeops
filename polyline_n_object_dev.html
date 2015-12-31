@@ -168,7 +168,7 @@
 
            function addPolyLine(options) 
            {
-               console.log("in addPolyLine");
+               // console.log("in addPolyLine");
 
                canvas.off('object:selected', addPolyLine);
 
@@ -221,12 +221,10 @@
                            if (object.addChild.from)
                                object.addChild.from.forEach(function (polyline, index, arr)
                                {
-                                   console.log(polyline);
                                    canvas.remove(polyline);
                                    canvas.remove(polyline.toNode.addChild.to[0]);
 
                                    curr = arr.splice(index, 1);
-                                   console.log(curr);
 
                                    polyline.points[0].x = objectCenter.x;
                                    polyline.points[0].y = objectCenter.y;
