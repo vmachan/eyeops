@@ -108,6 +108,47 @@
                delThis = null;
            }
 
+           function deletefromCanvasUsingGuid(thisObj, fromThisArray, removeFromArray)
+           {
+               for (ctr = 0; ctr < fromThisArray.length; ctr++)
+               {
+                   if (thisObj.id == fromThisArray[ctr].id)
+                   {
+                       if (removeFromArray)
+                       {
+                           fromThisArray.splice(ctr, 1);
+                       }
+                       canvas.remove(thisObj);
+                   }
+/*
+                   if (canvas._objects[ctr].addChild)
+                   {
+                       if (canvas._objects[ctr].addChild.from)
+                       {
+                           for (fromCtr = 0; fromCtr < canvas._objects[ctr].addChild.from.length; fromCtr++)
+                           {
+                               if (thisObj.id == canvas._objects[ctr].addChild.from[fromCtr].id)
+                               {
+                                   console.log("Deleting the FROM side.. ");
+                                   canvas.remove(canvas._objects[ctr].addChild.from[fromCtr]);
+                               }
+                           }
+                       }
+                       if (canvas._objects[ctr].addChild.to)
+                       {
+                           for (toCtr = 0; toCtr < canvas._objects[ctr].addChild.to.length; toCtr++)
+                           {
+                               if (thisObj.id == canvas._objects[ctr].addChild.to[toCtr].id)
+                               {
+                                   console.log("Deleting the TO side.. ");
+                                   canvas.remove(canvas._objects[ctr].addChild.to[toCtr]);
+                               }
+                           }
+                       }
+                   }
+*/
+               }
+           }
 
            $("#dumpCanvasObj").click(function()
            {
@@ -161,8 +202,6 @@
                    id: guid()
                });
                objPolyLine.id = guid();
-               // objPolyLine.fromNode = new Point(coords[0].x, coords[0].y);
-               // objPolyLine.toNode = new Point(coords[coords.length - 1].x, coords[coords.length - 1].y);
                return objPolyLine;
            }        
 
@@ -197,6 +236,7 @@
                    to: (fromObject.addChild && fromObject.addChild.to)
                }
                fromObject.addChild.from.push(objPolyline);
+
                toObject.addChild = {
                    from: (toObject.addChild && toObject.addChild.from),
                    to: (toObject.addChild && toObject.addChild.to) || []
@@ -221,8 +261,10 @@
                            if (object.addChild.from)
                                object.addChild.from.forEach(function (polyline, index, arr)
                                {
-                                   canvas.remove(polyline);
-                                   canvas.remove(polyline.toNode.addChild.to[0]);
+                                   // canvas.remove(polyline);
+                                   deletefromCanvasUsingGuid(polyline, object.addChild.from, false);
+                                   deletefromCanvasUsingGuid(polyline, polyline.toNode.addChild.to, true);
+                                   // canvas.remove(polyline.toNode.addChild.to[0]);
 
                                    curr = arr.splice(index, 1);
 
@@ -240,12 +282,15 @@
 
                                    objectList.push(curr);
                                    arr.push(curr);
+                                   polyline.toNode.addChild.to.push(curr);
                                    canvas.add(curr);
                                })
                            if (object.addChild.to)
                                object.addChild.to.forEach(function (polyline, index, arr) {
-                                   canvas.remove(polyline);
-                                   canvas.remove(polyline.fromNode.addChild.from[0]);
+                                   // canvas.remove(polyline);
+                                   deletefromCanvasUsingGuid(polyline, object.addChild.to, false);
+                                   deletefromCanvasUsingGuid(polyline, polyline.fromNode.addChild.from, true);
+                                   // canvas.remove(polyline.fromNode.addChild.from[0]);
 
                                    curr = arr.splice(index, 1);
 
@@ -261,6 +306,7 @@
 
                                    objectList.push(curr);
                                    arr.push(curr);
+                                   polyline.fromNode.addChild.from.push(curr);
                                    canvas.add(curr);
                                })
                        }
