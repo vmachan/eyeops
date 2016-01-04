@@ -79,14 +79,16 @@
                        // step backwards since we are deleting
                        for (var i = object.addChild.from.length - 1; i >= 0; i--) {
                            var line = object.addChild.from[i];
-                           line.addChildRemove();
-                           line.remove();
+                           var toObj = line.toNode;
+                           deletefromCanvasUsingGuid(line, object.addChild.from, true);
+                           deletefromCanvasUsingGuid(line, toObj.addChild.to, true);
                        }
                    if (object.addChild.to)
                        for (var i = object.addChild.to.length - 1; i >= 0; i--) {
                            var line = object.addChild.to[i];
-                           line.addChildRemove();
-                           line.remove();
+                           var fromObj = line.fromNode;
+                           deletefromCanvasUsingGuid(line, object.addChild.to, true);
+                           deletefromCanvasUsingGuid(line, fromObj.addChild.from, true);
                        }
                }
                for (ctr = 0; ctr < canvas._objects.length; ctr++)
@@ -203,6 +205,18 @@
 
                objPolyline.sendToBack();
                
+               // to remove line references when the line gets removed
+               objPolyline.addChildRemove = function () {
+                   fromObject.addChild.from.forEach(function (e, i, arr) {
+                       if (e === objPolyline)
+                           arr.splice(i, 1);
+                   });
+                   toObject.addChild.to.forEach(function (e, i, arr) {
+                       if (e === objPolyline)
+                           arr.splice(i, 1);
+                   });
+               }
+
                fromObject.addChild = {
                    // this retains the existing arrays (if there were any)
                    from: (fromObject.addChild && fromObject.addChild.from) || [],
@@ -234,11 +248,8 @@
                            if (object.addChild.from)
                                object.addChild.from.forEach(function (polyline, index, arr)
                                {
-                                   // canvas.remove(polyline);
                                    deletefromCanvasUsingGuid(polyline, object.addChild.from, false);
                                    deletefromCanvasUsingGuid(polyline, polyline.toNode.addChild.to, true);
-                                   // canvas.remove(polyline.toNode.addChild.to[0]);
-
                                    curr = arr.splice(index, 1);
 
                                    polyline.points[0].x = objectCenter.x;
@@ -260,11 +271,8 @@
                                })
                            if (object.addChild.to)
                                object.addChild.to.forEach(function (polyline, index, arr) {
-                                   // canvas.remove(polyline);
                                    deletefromCanvasUsingGuid(polyline, object.addChild.to, false);
                                    deletefromCanvasUsingGuid(polyline, polyline.fromNode.addChild.from, true);
-                                   // canvas.remove(polyline.fromNode.addChild.from[0]);
-
                                    curr = arr.splice(index, 1);
 
                                    polyline.points[polyline.points.length - 1].x = objectCenter.x;
@@ -288,7 +296,6 @@
                    {
                        console.log("group found");
                    }
-
                    canvas.renderAll();
                });
            }
