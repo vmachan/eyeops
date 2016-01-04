@@ -91,6 +91,15 @@
                            deletefromCanvasUsingGuid(line, fromObj.addChild.from, true);
                        }
                }
+               if (object.fromNode) 
+               {
+                   deletefromCanvasUsingGuid(delThis, object.fromNode.addChild.from, true);
+               }
+               if (object.toNode) 
+               {
+                   deletefromCanvasUsingGuid(delThis, object.toNode.addChild.to, true);
+               }
+
                for (ctr = 0; ctr < canvas._objects.length; ctr++)
                {
                    if (delThis.id == canvas._objects[ctr].id)
