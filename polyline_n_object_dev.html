@@ -1,59 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <link rel="stylesheet" type="text/css" href="commons.css"></script>
     <script type="text/javascript" src="../usere/d3/d3.min.js"></script>
     <script type="text/javascript" src="../usere/jquery-2.1.4.min.js"></script>
     <script src="../fabric/dist/fabric.js"></script>
     <script>
        var objectList = [];
-       function guid()
+       var vertexFocus = null; // For showing polyline vertices when mouse moves over it
+       var canvas;
+       var gContextObj = null;
+
+       function loadjscssfile(filename, filetype)
        {
-         function s4()
-         {
-           return Math.floor((1 + Math.random()) * 0x10000)
-             .toString(16)
-             .substring(1);
-         }
-         return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-           s4() + '-' + s4() + s4() + s4();
+           if (filetype=="js")
+           { 
+               // if filename is a external JavaScript file
+               var fileref=document.createElement('script')
+               fileref.setAttribute("type","text/javascript")
+               fileref.setAttribute("src", filename)
+           }
+           else if (filetype=="css")
+           { 
+               //if filename is an external CSS file
+               var fileref=document.createElement("link")
+               fileref.setAttribute("rel", "stylesheet")
+               fileref.setAttribute("type", "text/css")
+               fileref.setAttribute("href", filename)
+           }
+           if (typeof fileref!="undefined")
+               document.getElementsByTagName("head")[0].appendChild(fileref)
        }
+         
+       loadjscssfile("rightclick.js", "js") //dynamically load and add this .js file
+       loadjscssfile("createobjs.js", "js") //dynamically load and add this .js file
+       loadjscssfile("mouseevents.js", "js") //dynamically load and add this .js file
+
+       /*
+          Examples to load PHP as JS and CSS
+
+       // loadjscssfile("javascript.php", "js") //dynamically load "javascript.php" as a JS file
+       // loadjscssfile("mystyle.css", "css") ////dynamically load and add this .css file
+
+       */
 
        $(document).ready(function()
        {
-           var canvas = new fabric.Canvas('canvas');
+           canvas = new fabric.Canvas('canvas');
 
            // ['object:moving', 'object:scaling', 'object:rotating'].forEach(addChildMovePolyLine);
-           ['object:moving', 'object:scaling', 'object:rotating'].forEach(movePolyLine);
-
-           $("#createBox").click(function()
-           {
-               var rect = new fabric.Rect(
-                                      {
-                                        top: 200,
-                                        left: 200,
-                                        width: 60,
-                                        height: 70,
-                                        fill: 'red'
-                                      }
-                                     );
-               rect.id = guid();
-               objectList.push(rect);
-               canvas.add(rect);
-           });
-           $("#createCircle").click(function()
-           {
-               var objCircle = new fabric.Circle(
-                                      {
-                                        radius: 40
-                                       ,fill: 'green'
-                                       ,left: 300
-                                       ,top: 200
-                                      }
-                                     );
-               objCircle.id = guid();
-               objectList.push(objCircle);
-               canvas.add(objCircle);
-           });
 
            $('html').keyup(function(e)
                {
@@ -119,21 +114,6 @@
                delThis = null;
            }
 
-           function deletefromCanvasUsingGuid(thisObj, fromThisArray, removeFromArray)
-           {
-               for (ctr = 0; ctr < fromThisArray.length; ctr++)
-               {
-                   if (thisObj.id == fromThisArray[ctr].id)
-                   {
-                       if (removeFromArray)
-                       {
-                           fromThisArray.splice(ctr, 1);
-                       }
-                       canvas.remove(thisObj);
-                   }
-               }
-           }
-
            $("#dumpCanvasObj").click(function()
            {
                console.log(canvas);
@@ -150,10 +130,6 @@
            });
 
    // START OF POLYLINE CHANGES 
-           function Point(x, y) {
-               this.x = x;
-               this.y = y;
-           }
 
            $("#addChildWithPolyLine").click(function()
            {
@@ -166,162 +142,6 @@
                canvas.on('object:selected', addPolyLine /* addChildWithPolyLine */);
            });
 
-           function makePolyLine(coords) 
-           {
-               // console.log("in makePolyLine");
-
-               var objPolyLine = new fabric.Polyline(coords, {
-                   fill: 'teal',
-                   stroke: 'teal', // '#'+Math.floor(Math.random()*16777215).toString(16),
-                   strokeWidth: 2,
-                   hasControls: true,
-                   hasBorders: false,
-                   lockScalingX: true,
-                   lockScalingY: true,
-                   lockRotation: false,
-                   lockMovementX: false,
-                   lockMovementY: false,
-                   perPixelTargetFind: true,
-                   selectable: true,
-                   id: guid()
-               });
-               objPolyLine.id = guid();
-               return objPolyLine;
-           }        
-
-           function addPolyLine(options) 
-           {
-               // console.log("in addPolyLine");
-
-               canvas.off('object:selected', addPolyLine);
-
-               var fromObject = canvas.addChild.start; // console.log(fromObject);
-               var toObject = options.target;
-
-               var objPolyline = makePolyLine(
-                                              [
-                                                  new Point(fromObject.getCenterPoint().x
-                                                          , fromObject.getCenterPoint().y)
-                                                , new Point(toObject.getCenterPoint().x
-                                                          , toObject.getCenterPoint().y)
-                                              ]
-                                             );
-               objPolyline.fromNode = fromObject;
-               objPolyline.toNode = toObject;
-
-               objectList.push(objPolyline);
-               canvas.add(objPolyline);
-
-               objPolyline.sendToBack();
-               
-               // to remove line references when the line gets removed
-               objPolyline.addChildRemove = function () {
-                   fromObject.addChild.from.forEach(function (e, i, arr) {
-                       if (e === objPolyline)
-                           arr.splice(i, 1);
-                   });
-                   toObject.addChild.to.forEach(function (e, i, arr) {
-                       if (e === objPolyline)
-                           arr.splice(i, 1);
-                   });
-               }
-
-               fromObject.addChild = {
-                   // this retains the existing arrays (if there were any)
-                   from: (fromObject.addChild && fromObject.addChild.from) || [],
-                   to: (fromObject.addChild && fromObject.addChild.to)
-               }
-               fromObject.addChild.from.push(objPolyline);
-
-               toObject.addChild = {
-                   from: (toObject.addChild && toObject.addChild.from),
-                   to: (toObject.addChild && toObject.addChild.to) || []
-               }
-               toObject.addChild.to.push(objPolyline);
-
-               // to remove line references when the line gets removed
-               canvas.addChild = undefined;
-               canvas.renderAll();
-           }
-
-           function movePolyLine(event) 
-           {
-               canvas.on(event, function (options) {
-                   var object = options.target;
-                   var objectCenter = object.getCenterPoint();
-
-                   if (object.type != 'group')
-                   {
-                       if (object.addChild)
-                       {
-                           if (object.addChild.from)
-                               object.addChild.from.forEach(function (polyline, index, arr)
-                               {
-                                   deletefromCanvasUsingGuid(polyline, object.addChild.from, false);
-                                   deletefromCanvasUsingGuid(polyline, polyline.toNode.addChild.to, true);
-                                   curr = arr.splice(index, 1);
-
-                                   polyline.points[0].x = objectCenter.x;
-                                   polyline.points[0].y = objectCenter.y;
-                                   polyline.points[polyline.points.length - 1].x 
-                                       = curr[0].toNode.getCenterPoint().x;
-                                   polyline.points[polyline.points.length - 1].y
-                                       = curr[0].toNode.getCenterPoint().y;
-
-                                   // console.log("before makePolyLine for FROM");
-                                   curr = makePolyLine(polyline.points);
-                                   curr.fromNode = object;
-                                   curr.toNode = polyline.toNode;
-
-                                   objectList.push(curr);
-                                   arr.push(curr);
-                                   polyline.toNode.addChild.to.push(curr);
-                                   canvas.add(curr);
-                               })
-                           if (object.addChild.to)
-                               object.addChild.to.forEach(function (polyline, index, arr) {
-                                   deletefromCanvasUsingGuid(polyline, object.addChild.to, false);
-                                   deletefromCanvasUsingGuid(polyline, polyline.fromNode.addChild.from, true);
-                                   curr = arr.splice(index, 1);
-
-                                   polyline.points[polyline.points.length - 1].x = objectCenter.x;
-                                   polyline.points[polyline.points.length - 1].y = objectCenter.y;
-                                   polyline.points[0].x = curr[0].fromNode.getCenterPoint().x;
-                                   polyline.points[0].y = curr[0].fromNode.getCenterPoint().y;
-
-                                   // console.log("before makePolyLine for TO");
-                                   curr = makePolyLine(polyline.points);
-                                   curr.toNode = object;
-                                   curr.fromNode = polyline.fromNode;
-
-                                   objectList.push(curr);
-                                   arr.push(curr);
-                                   polyline.fromNode.addChild.from.push(curr);
-                                   canvas.add(curr);
-                               })
-                       }
-                   } 
-                   else 
-                   {
-                       console.log("group found");
-                   }
-                   canvas.renderAll();
-               });
-           }
-
-           // END OF POLYLINE CHANGES 
-
-           canvas.on('mouse:move', function (options) 
-           {
-               var offset = $('#canvas').offset();
-               x = options.e.pageX - offset.left;
-               y = options.e.pageY - offset.top;
-
-               $('#txtCursor').val(x + "," + y);
-               $('#cursor').text(x + "," + y);
-
-               canvas.renderAll();
-           });
         });
     </script>
     <title>
@@ -346,6 +166,16 @@
               <input id="renderAll" type="button" name="btnRenderAll" value="Render All" />
               <input id="dumpCanvasObj" type="button" name="btnDumpCanvasObj" value="Dump canvas object" />
               <label id="cursor"></label>
+              <hr/>
+              <label id="mousePos"></label>
+              <hr/>
+              <label id="objPos"></label>
+            </div>
+            <div class="rightClickMenu" id="rightClickMenu">
+                <ul>
+                    <li><a href="#" id="addVertex">Add vertex</a></li>
+                    <li><a href="#" id="showContextObject">Show object</a></li>
+                </ul>
             </div>
         </div>
     </body>
