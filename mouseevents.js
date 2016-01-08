@@ -130,81 +130,16 @@
 
 
 
-           function makePolyLine(coords) 
-           {
-               // console.log("in makePolyLine");
-
-               var objPolyLine = new fabric.Polyline(coords, {
-                   fill: null,
-                   stroke: '#000022', //'#'+Math.floor(Math.random()*16777215).toString(16),
-                   strokeWidth: 2,
-                   hasControls: true,
-                   hasBorders: false,
-                   lockScalingX: true,
-                   lockScalingY: true,
-                   lockRotation: true,
-                   lockMovementX: true,
-                   lockMovementY: true,
-                   perPixelTargetFind: true,
-                   targetFindTolerance: 4,
-                   selectable: true,
-                   id: guid()
-               });
-               objPolyLine.id = guid();
-               return objPolyLine;
-           }        
-
            function addPolyLine(options) 
            {
                // console.log("in addPolyLine");
-
                canvas.off('object:selected', addPolyLine);
 
                var fromObject = canvas.addChild.start; // console.log(fromObject);
                var toObject = options.target;
 
-               var objPolyline = makePolyLine(
-                                              [
-                                                  new Point(fromObject.getCenterPoint().x
-                                                          , fromObject.getCenterPoint().y)
-                                                , new Point(toObject.getCenterPoint().x
-                                                          , toObject.getCenterPoint().y)
-                                              ]
-                                             );
-               objPolyline.fromNode = fromObject;
-               objPolyline.toNode = toObject;
+               addPolyLineFromTo(fromObject, toObject);
 
-               objectList.push(objPolyline);
-               canvas.add(objPolyline);
-
-               objPolyline.sendToBack();
-               
-               // to remove line references when the line gets removed
-               objPolyline.addChildRemove = function () {
-                   fromObject.addChild.from.forEach(function (e, i, arr) {
-                       if (e === objPolyline)
-                           arr.splice(i, 1);
-                   });
-                   toObject.addChild.to.forEach(function (e, i, arr) {
-                       if (e === objPolyline)
-                           arr.splice(i, 1);
-                   });
-               }
-
-               fromObject.addChild = {
-                   // this retains the existing arrays (if there were any)
-                   from: (fromObject.addChild && fromObject.addChild.from) || [],
-                   to: (fromObject.addChild && fromObject.addChild.to)
-               }
-               fromObject.addChild.from.push(objPolyline);
-
-               toObject.addChild = {
-                   from: (toObject.addChild && toObject.addChild.from),
-                   to: (toObject.addChild && toObject.addChild.to) || []
-               }
-               toObject.addChild.to.push(objPolyline);
-
-               // to remove line references when the line gets removed
                canvas.addChild = undefined;
                canvas.renderAll();
            }
@@ -224,14 +159,38 @@
                                {
                                    deletefromCanvasUsingGuid(polyline, object.addChild.from, false);
                                    deletefromCanvasUsingGuid(polyline, polyline.toNode.addChild.to, true);
+                                   // Removes the current polyline from the "from" array of object
                                    curr = arr.splice(index, 1);
 
+                                   // Now set the start (0) and end (length-1) coords of the polyline
                                    polyline.points[0].x = objectCenter.x;
                                    polyline.points[0].y = objectCenter.y;
                                    polyline.points[polyline.points.length - 1].x 
                                        = curr[0].toNode.getCenterPoint().x;
                                    polyline.points[polyline.points.length - 1].y
                                        = curr[0].toNode.getCenterPoint().y;
+
+                                   var translatedPoints = polyline.get("points");
+                                   for (tI = 1; tI < translatedPoints.length - 1; tI++)
+                                   {
+                                       tx = polyline.getCenterPoint().x + translatedPoints[tI].x;
+                                       ty = polyline.getCenterPoint().y + translatedPoints[tI].y;
+                                       var pos = fabric.util.rotatePoint(
+                                           new fabric.Point(tx, ty),
+                                           new fabric.Point(
+                                                      polyline.getCenterPoint().x
+                                                    , polyline.getCenterPoint().y)
+                                                    , fabric.util.degreesToRadians(polyline.angle)
+                                                           );
+                                       translatedPoints[tI].x = pos.x;
+                                       translatedPoints[tI].y = pos.y;
+                                   }
+                                   console.log("*************");
+                                   polyline.points.forEach(function(d) { console.log(d.x, d.y); });
+                                   polyline.set("points", translatedPoints);
+
+                                   console.log("-----------");
+                                   polyline.points.forEach(function(d) { console.log(d.x, d.y); });
 
                                    // console.log("before makePolyLine for FROM");
                                    curr = makePolyLine(polyline.points);
@@ -255,7 +214,28 @@
                                    polyline.points[0].x = curr[0].fromNode.getCenterPoint().x;
                                    polyline.points[0].y = curr[0].fromNode.getCenterPoint().y;
 
-                                   // console.log("before makePolyLine for TO");
+                                   var translatedPoints = polyline.get("points");
+                                   for (tI = 1; tI < translatedPoints.length - 1; tI++)
+                                   {
+                                       tx = polyline.getCenterPoint().x + translatedPoints[tI].x;
+                                       ty = polyline.getCenterPoint().y + translatedPoints[tI].y;
+                                       var pos = fabric.util.rotatePoint(
+                                           new fabric.Point(tx, ty),
+                                           new fabric.Point(
+                                                      polyline.getCenterPoint().x
+                                                    , polyline.getCenterPoint().y)
+                                                    , fabric.util.degreesToRadians(polyline.angle)
+                                                           );
+                                       translatedPoints[tI].x = pos.x;
+                                       translatedPoints[tI].y = pos.y;
+                                   }
+                                   console.log("*************");
+                                   polyline.points.forEach(function(d) { console.log(d.x, d.y); });
+
+                                   polyline.set("points", translatedPoints);
+                                   console.log("-----------");
+                                   polyline.points.forEach(function(d) { console.log(d.x, d.y); });
+
                                    curr = makePolyLine(polyline.points);
                                    curr.toNode = object;
                                    curr.fromNode = polyline.fromNode;
@@ -292,3 +272,58 @@
            }
 
            // END OF POLYLINE CHANGES 
+
+           function addPolyLineFromTo(fromObject, toObject, polyPoints)
+           {
+               var objPolyline;
+
+               if (polyPoints)
+               {
+                   objPolyline = makePolyLine(
+                                              polyPoints
+                                             );
+               }
+               else
+               {
+                   objPolyline = makePolyLine(
+                                              [
+                                                  new Point(fromObject.getCenterPoint().x
+                                                          , fromObject.getCenterPoint().y)
+                                                , new Point(toObject.getCenterPoint().x
+                                                          , toObject.getCenterPoint().y)
+                                              ]
+                                             );
+               }
+               objPolyline.fromNode = fromObject;
+               objPolyline.toNode = toObject;
+
+               objectList.push(objPolyline);
+               canvas.add(objPolyline);
+
+               objPolyline.sendToBack();
+               
+               // to remove line references when the line gets removed
+               objPolyline.addChildRemove = function () {
+                   fromObject.addChild.from.forEach(function (e, i, arr) {
+                       if (e === objPolyline)
+                           arr.splice(i, 1);
+                   });
+                   toObject.addChild.to.forEach(function (e, i, arr) {
+                       if (e === objPolyline)
+                           arr.splice(i, 1);
+                   });
+               }
+
+               fromObject.addChild = {
+                   // this retains the existing arrays (if there were any)
+                   from: (fromObject.addChild && fromObject.addChild.from) || [],
+                   to: (fromObject.addChild && fromObject.addChild.to)
+               }
+               fromObject.addChild.from.push(objPolyline);
+
+               toObject.addChild = {
+                   from: (toObject.addChild && toObject.addChild.from),
+                   to: (toObject.addChild && toObject.addChild.to) || []
+               }
+               toObject.addChild.to.push(objPolyline);
+           }

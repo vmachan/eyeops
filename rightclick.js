@@ -64,7 +64,6 @@
            console.log("addVertexToPolyLine: thisPolyLine is ");
            console.log(thisPolyLine);
 
-           // 1. Get the global co-ordinates for the points of the selected polyline 
            var selectedPoints = thisPolyLine.points;
            var globalPoints = [];
            selectedPoints.forEach(
@@ -78,19 +77,15 @@
            var offset = $('#canvas').offset();
            var mouseX = curX /* e.e.pageX */ - offset.left;
            var mouseY = curY /* e.e.pageY */ - offset.top;
-           globalPoints.push(new Point(mouseX - 50, mouseY - 50));
-           vertexFocus = new fabric.Circle(
-                                  {
-                                    radius: 10
-                                   ,fill: 'red'
-                                   ,opacity: 0.5
-                                   ,left: mouseX - 10
-                                   ,top: mouseY - 10
-                                  }
-                     );
 
-           // 3. Re-create (delete and create) the selected polyline
-           canvas.add(makePolyLine(globalPoints));
-           canvas.add(vertexFocus);
+           // **** Need to tweak this to add the new point at the right index **** 
+           globalPoints.splice(globalPoints.length - 1, 0, new Point(mouseX - 50, mouseY - 50));
+           // globalPoints.forEach(function(d) { console.log(d.x, d.y); });
+
+           addPolyLineFromTo(thisPolyLine.fromNode, thisPolyLine.toNode, globalPoints);
+
+           // Remove the old polyline
+           deletefromCanvasUsingGuid(thisPolyLine, thisPolyLine.toNode.addChild.to, true);
+           deletefromCanvasUsingGuid(thisPolyLine, thisPolyLine.fromNode.addChild.from, true);
        }
 
