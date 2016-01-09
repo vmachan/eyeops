@@ -1,4 +1,5 @@
-           ['object:moving', 'object:scaling', 'object:rotating'].forEach(movePolyLine);
+           // ['object:moving', 'object:scaling', 'object:rotating'].forEach(movePolyLine);
+           ['object:moving', 'object:scaling', 'object:rotating'].forEach(mouseMovePolyLine);
 
            canvas.on("mouse:over", function(e) {
                e.target.setShadow("5px 5px 2px rgba(94, 128, 191, 0.5)");
@@ -77,6 +78,118 @@
                canvas.renderAll();
            });
 
+           canvas.on('mouse:up', function (options) 
+           {
+               console.log("mouse-up event");
+               console.log(options.target);
+
+               var object = options.target;
+               var objectCenter = object.getCenterPoint();
+               if (object.type != 'group')
+               {
+                   if (object.addChild)
+                   {
+                       if (object.addChild.from)
+                           object.addChild.from.forEach(function (polyline, index, arr)
+                           {
+                               deletefromCanvasUsingGuid(polyline, object.addChild.from, false);
+                               deletefromCanvasUsingGuid(polyline, polyline.toNode.addChild.to, true);
+                               // Removes the current polyline from the "from" array of object
+                               curr = arr.splice(index, 1);
+
+                               // Now set the start (0) and end (length-1) coords of the polyline
+                               polyline.points[0].x = objectCenter.x;
+                               polyline.points[0].y = objectCenter.y;
+                               polyline.points[polyline.points.length - 1].x 
+                                   = curr[0].toNode.getCenterPoint().x;
+                               polyline.points[polyline.points.length - 1].y
+                                   = curr[0].toNode.getCenterPoint().y;
+
+                               var translatedPoints = polyline.points;
+                               for (tI = 1; tI < translatedPoints.length - 1; tI++)
+                               {
+                                   console.log(
+                                                polyline.getCenterPoint().x
+                                               ,polyline.getCenterPoint().y
+                                               ,translatedPoints[tI].x
+                                               ,translatedPoints[tI].y
+                                               );
+                                   tx = translatedPoints[tI].x + polyline.getCenterPoint().x;
+                                   ty = translatedPoints[tI].y + polyline.getCenterPoint().y;
+                                   var pos = fabric.util.rotatePoint(
+                                       new fabric.Point(tx, ty),
+                                       new fabric.Point(
+                                                  polyline.getCenterPoint().x
+                                                , polyline.getCenterPoint().y)
+                                                , fabric.util.degreesToRadians(polyline.angle)
+                                                       );
+                                   translatedPoints[tI].x = pos.x;
+                                   translatedPoints[tI].y = pos.y;
+                               }
+                               polyline.points = translatedPoints;
+
+                               curr = makePolyLine(polyline.points);
+                               curr.fromNode = object;
+                               curr.toNode = polyline.toNode;
+
+                               objectList.push(curr);
+                               arr.push(curr);
+                               polyline.toNode.addChild.to.push(curr);
+                               canvas.add(curr);
+                               curr.sendToBack();
+                           })
+                       if (object.addChild.to)
+                           object.addChild.to.forEach(function (polyline, index, arr) {
+                               deletefromCanvasUsingGuid(polyline, object.addChild.to, false);
+                               deletefromCanvasUsingGuid(polyline, polyline.fromNode.addChild.from, true);
+                               curr = arr.splice(index, 1);
+
+                               polyline.points[polyline.points.length - 1].x = objectCenter.x;
+                               polyline.points[polyline.points.length - 1].y = objectCenter.y;
+                               polyline.points[0].x = curr[0].fromNode.getCenterPoint().x;
+                               polyline.points[0].y = curr[0].fromNode.getCenterPoint().y;
+
+                               var translatedPoints = polyline.points;
+                               for (tI = 1; tI < translatedPoints.length - 1; tI++)
+                               {
+                                   console.log(
+                                                polyline.getCenterPoint().x
+                                               ,polyline.getCenterPoint().y
+                                               ,translatedPoints[tI].x
+                                               ,translatedPoints[tI].y
+                                               );
+                                   tx = polyline.getCenterPoint().x + translatedPoints[tI].x;
+                                   ty = polyline.getCenterPoint().y + translatedPoints[tI].y;
+                                   var pos = fabric.util.rotatePoint(
+                                       new fabric.Point(tx, ty),
+                                       new fabric.Point(
+                                                  polyline.getCenterPoint().x
+                                                , polyline.getCenterPoint().y)
+                                                , fabric.util.degreesToRadians(polyline.angle)
+                                                       );
+                                   translatedPoints[tI].x = pos.x;
+                                   translatedPoints[tI].y = pos.y;
+                               }
+                               polyline.points = translatedPoints;
+
+                               curr = makePolyLine(polyline.points);
+                               curr.toNode = object;
+                               curr.fromNode = polyline.fromNode;
+
+                               objectList.push(curr);
+                               arr.push(curr);
+                               polyline.fromNode.addChild.from.push(curr);
+                               canvas.add(curr);
+                               curr.sendToBack();
+                           })
+                   }
+               } 
+               else 
+               {
+                   console.log("group found");
+               }
+           });
+
            function checkIfMouseAtVertex(mousePos) 
            {
                isSet = null;
@@ -142,118 +255,6 @@
 
                canvas.addChild = undefined;
                canvas.renderAll();
-           }
-
-           function movePolyLine(event) 
-           {
-               canvas.on(event, function (options) {
-                   var object = options.target;
-                   var objectCenter = object.getCenterPoint();
-
-                   if (object.type != 'group')
-                   {
-                       if (object.addChild)
-                       {
-                           if (object.addChild.from)
-                               object.addChild.from.forEach(function (polyline, index, arr)
-                               {
-                                   deletefromCanvasUsingGuid(polyline, object.addChild.from, false);
-                                   deletefromCanvasUsingGuid(polyline, polyline.toNode.addChild.to, true);
-                                   // Removes the current polyline from the "from" array of object
-                                   curr = arr.splice(index, 1);
-
-                                   // Now set the start (0) and end (length-1) coords of the polyline
-                                   polyline.points[0].x = objectCenter.x;
-                                   polyline.points[0].y = objectCenter.y;
-                                   polyline.points[polyline.points.length - 1].x 
-                                       = curr[0].toNode.getCenterPoint().x;
-                                   polyline.points[polyline.points.length - 1].y
-                                       = curr[0].toNode.getCenterPoint().y;
-
-                                   var translatedPoints = polyline.get("points");
-                                   for (tI = 1; tI < translatedPoints.length - 1; tI++)
-                                   {
-                                       tx = polyline.getCenterPoint().x + translatedPoints[tI].x;
-                                       ty = polyline.getCenterPoint().y + translatedPoints[tI].y;
-                                       var pos = fabric.util.rotatePoint(
-                                           new fabric.Point(tx, ty),
-                                           new fabric.Point(
-                                                      polyline.getCenterPoint().x
-                                                    , polyline.getCenterPoint().y)
-                                                    , fabric.util.degreesToRadians(polyline.angle)
-                                                           );
-                                       translatedPoints[tI].x = pos.x;
-                                       translatedPoints[tI].y = pos.y;
-                                   }
-                                   console.log("*************");
-                                   polyline.points.forEach(function(d) { console.log(d.x, d.y); });
-                                   polyline.set("points", translatedPoints);
-
-                                   console.log("-----------");
-                                   polyline.points.forEach(function(d) { console.log(d.x, d.y); });
-
-                                   // console.log("before makePolyLine for FROM");
-                                   curr = makePolyLine(polyline.points);
-                                   curr.fromNode = object;
-                                   curr.toNode = polyline.toNode;
-
-                                   objectList.push(curr);
-                                   arr.push(curr);
-                                   polyline.toNode.addChild.to.push(curr);
-                                   canvas.add(curr);
-                                   curr.sendToBack();
-                               })
-                           if (object.addChild.to)
-                               object.addChild.to.forEach(function (polyline, index, arr) {
-                                   deletefromCanvasUsingGuid(polyline, object.addChild.to, false);
-                                   deletefromCanvasUsingGuid(polyline, polyline.fromNode.addChild.from, true);
-                                   curr = arr.splice(index, 1);
-
-                                   polyline.points[polyline.points.length - 1].x = objectCenter.x;
-                                   polyline.points[polyline.points.length - 1].y = objectCenter.y;
-                                   polyline.points[0].x = curr[0].fromNode.getCenterPoint().x;
-                                   polyline.points[0].y = curr[0].fromNode.getCenterPoint().y;
-
-                                   var translatedPoints = polyline.get("points");
-                                   for (tI = 1; tI < translatedPoints.length - 1; tI++)
-                                   {
-                                       tx = polyline.getCenterPoint().x + translatedPoints[tI].x;
-                                       ty = polyline.getCenterPoint().y + translatedPoints[tI].y;
-                                       var pos = fabric.util.rotatePoint(
-                                           new fabric.Point(tx, ty),
-                                           new fabric.Point(
-                                                      polyline.getCenterPoint().x
-                                                    , polyline.getCenterPoint().y)
-                                                    , fabric.util.degreesToRadians(polyline.angle)
-                                                           );
-                                       translatedPoints[tI].x = pos.x;
-                                       translatedPoints[tI].y = pos.y;
-                                   }
-                                   console.log("*************");
-                                   polyline.points.forEach(function(d) { console.log(d.x, d.y); });
-
-                                   polyline.set("points", translatedPoints);
-                                   console.log("-----------");
-                                   polyline.points.forEach(function(d) { console.log(d.x, d.y); });
-
-                                   curr = makePolyLine(polyline.points);
-                                   curr.toNode = object;
-                                   curr.fromNode = polyline.fromNode;
-
-                                   objectList.push(curr);
-                                   arr.push(curr);
-                                   polyline.fromNode.addChild.from.push(curr);
-                                   canvas.add(curr);
-                                   curr.sendToBack();
-                               })
-                       }
-                   } 
-                   else 
-                   {
-                       console.log("group found");
-                   }
-                   canvas.renderAll();
-               });
            }
 
            function deletefromCanvasUsingGuid(thisObj, fromThisArray, removeFromArray)
@@ -326,4 +327,41 @@
                    to: (toObject.addChild && toObject.addChild.to) || []
                }
                toObject.addChild.to.push(objPolyline);
+           }
+
+
+           function mouseMovePolyLine(event) 
+           {
+               canvas.on(event, function (options) {
+                   var object = options.target;
+                   var objectCenter = object.getCenterPoint();
+
+                   if (object.type != 'group')
+                   {
+                       if (object.addChild)
+                       {
+                           if (object.addChild.from)
+                               object.addChild.from.forEach(function (polyline, index, arr)
+                               {
+                                   polyline.points[0].x = 
+                                       objectCenter.x - polyline.getCenterPoint().x;
+                                   polyline.points[0].y =
+                                       objectCenter.y - polyline.getCenterPoint().y;
+                               })
+                           if (object.addChild.to)
+                               object.addChild.to.forEach(function (polyline, index, arr) 
+                               {
+                                   polyline.points[polyline.points.length - 1].x =
+                                       objectCenter.x - polyline.getCenterPoint().x;
+                                   polyline.points[polyline.points.length - 1].y =
+                                       objectCenter.y - polyline.getCenterPoint().y;
+                               })
+                       }
+                   } 
+                   else 
+                   {
+                       console.log("group found");
+                   }
+                   canvas.renderAll();
+               });
            }
