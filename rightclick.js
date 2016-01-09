@@ -2,7 +2,7 @@
 
        $('canvas').bind('contextmenu', function (env) 
        {
-           console.log("right clicked");
+           // console.log("right clicked");
 
            var objectFound = false;
            var clickPoint = new fabric.Point(env.offsetX, env.offsetY);
@@ -14,7 +14,6 @@
                if (!objectFound && obj.containsPoint(clickPoint))
                {
                    objectFound = true;
-                   console.log(obj);
                    var cnvsPos = $('canvas').offset();
                    curX = env.clientX;
                    curY = env.clientY;
@@ -61,8 +60,8 @@
        {
            var thisPolyLine = (e.target ? e.target : e);
 
-           console.log("addVertexToPolyLine: thisPolyLine is ");
-           console.log(thisPolyLine);
+           // console.log("addVertexToPolyLine: thisPolyLine is ");
+           // console.log(thisPolyLine);
 
            var selectedPoints = thisPolyLine.points;
            var globalPoints = [];

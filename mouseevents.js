@@ -17,7 +17,7 @@
                  $('#rightClickMenu').hide();
                  if (gContextObj) 
                  {
-                     console.log("Selected object is of type - ", gContextObj.type);
+                     // console.log("Selected object is of type - ", gContextObj.type);
                      addVertexToPolyLine(gContextObj);
                  }
                  return false;
@@ -33,7 +33,8 @@
                  return false;
            });
 
-           canvas.on("mouse:down", function(e) {
+           canvas.on("mouse:down", function(e)
+           {
                if ($('#rightClickMenu').css("display", "block"))
                {
                    $('#rightClickMenu').css("display", "none");
@@ -42,6 +43,10 @@
                if ($('#rightClickMenu').css("display", "block"))
                {
                    $('#rightClickMenu').css("display", "none");
+               }
+               if (gIsMouseAtVertex)
+               {
+                   gVertexSelected = true;
                }
            });
 
@@ -53,37 +58,52 @@
 
                $('#cursor').text(x + "," + y);
 
-               var isMouseAtVertex = null;
-               isMouseAtVertex = checkIfMouseAtVertex(new Point(x, y));
-               canvas.remove(vertexFocus);
-               vertexFocus = null;
-               if (isMouseAtVertex != null) 
+               if (gVertexSelected)
                {
-                   vertexFocus = new fabric.Circle(
-                                          {
-                                            radius: 10
-                                           ,fill: 'navy' // '#'+Math.floor(Math.random()*16777215).toString(16)
-                                           ,opacity: 0.5
-                                           ,originX: 'center'
-                                           ,originY: 'center'
-                                           ,left: isMouseAtVertex.x
-                                           ,top: isMouseAtVertex.y
-                                           ,stroke: 'white'
-                                           ,strokeWidth: 2
-                                          }
-                             );
-                   // setTimeout(animateVertexCircle(vertexFocus), 1);
-                   canvas.add(vertexFocus);
+                   // console.log("dragging this vertex", gSelectedObject, gSelectedPointInPolyLine, gIsMouseAtVertex, gSelectedObject.getCenterPoint());
+                   gSelectedObject.points[gSelectedPointInPolyLine].x =
+                       x - gSelectedObject.getCenterPoint().x;
+                   gSelectedObject.points[gSelectedPointInPolyLine].y =
+                       y - gSelectedObject.getCenterPoint().y;
+                   gSelectedObject.setCoords();
+               }
+               else
+               {
+                   gIsMouseAtVertex = checkIfMouseAtVertex(new Point(x, y));
+                   canvas.remove(vertexFocus);
+                   vertexFocus = null;
+                   if (gIsMouseAtVertex != null) 
+                   {
+                       vertexFocus = new fabric.Circle(
+                                              {
+                                                radius: 10
+                                               ,fill: 'navy' // '#'+Math.floor(Math.random()*16777215).toString(16)
+                                               ,opacity: 0.5
+                                               ,originX: 'center'
+                                               ,originY: 'center'
+                                               ,left: gIsMouseAtVertex.x
+                                               ,top: gIsMouseAtVertex.y
+                                               ,stroke: 'white'
+                                               ,strokeWidth: 2
+                                              }
+                                 );
+                       // setTimeout(animateVertexCircle(vertexFocus), 1);
+                       canvas.add(vertexFocus);
+                   }
                }
                canvas.renderAll();
            });
 
            canvas.on('mouse:up', function (options) 
            {
-               console.log("mouse-up event");
-               console.log(options.target);
+               // console.log("mouse-up event");
+               // console.log(options.target);
 
                var object = options.target;
+               if (object == null)
+               {
+                   return;
+               }
                var objectCenter = object.getCenterPoint();
                if (object.type != 'group')
                {
@@ -105,27 +125,7 @@
                                polyline.points[polyline.points.length - 1].y
                                    = curr[0].toNode.getCenterPoint().y;
 
-                               var translatedPoints = polyline.points;
-                               for (tI = 1; tI < translatedPoints.length - 1; tI++)
-                               {
-                                   console.log(
-                                                polyline.getCenterPoint().x
-                                               ,polyline.getCenterPoint().y
-                                               ,translatedPoints[tI].x
-                                               ,translatedPoints[tI].y
-                                               );
-                                   tx = translatedPoints[tI].x + polyline.getCenterPoint().x;
-                                   ty = translatedPoints[tI].y + polyline.getCenterPoint().y;
-                                   var pos = fabric.util.rotatePoint(
-                                       new fabric.Point(tx, ty),
-                                       new fabric.Point(
-                                                  polyline.getCenterPoint().x
-                                                , polyline.getCenterPoint().y)
-                                                , fabric.util.degreesToRadians(polyline.angle)
-                                                       );
-                                   translatedPoints[tI].x = pos.x;
-                                   translatedPoints[tI].y = pos.y;
-                               }
+                               var translatedPoints = getAbsolutePoints(polyline);
                                polyline.points = translatedPoints;
 
                                curr = makePolyLine(polyline.points);
@@ -149,27 +149,7 @@
                                polyline.points[0].x = curr[0].fromNode.getCenterPoint().x;
                                polyline.points[0].y = curr[0].fromNode.getCenterPoint().y;
 
-                               var translatedPoints = polyline.points;
-                               for (tI = 1; tI < translatedPoints.length - 1; tI++)
-                               {
-                                   console.log(
-                                                polyline.getCenterPoint().x
-                                               ,polyline.getCenterPoint().y
-                                               ,translatedPoints[tI].x
-                                               ,translatedPoints[tI].y
-                                               );
-                                   tx = polyline.getCenterPoint().x + translatedPoints[tI].x;
-                                   ty = polyline.getCenterPoint().y + translatedPoints[tI].y;
-                                   var pos = fabric.util.rotatePoint(
-                                       new fabric.Point(tx, ty),
-                                       new fabric.Point(
-                                                  polyline.getCenterPoint().x
-                                                , polyline.getCenterPoint().y)
-                                                , fabric.util.degreesToRadians(polyline.angle)
-                                                       );
-                                   translatedPoints[tI].x = pos.x;
-                                   translatedPoints[tI].y = pos.y;
-                               }
+                               var translatedPoints = getAbsolutePoints(polyline);
                                polyline.points = translatedPoints;
 
                                curr = makePolyLine(polyline.points);
@@ -188,6 +168,9 @@
                {
                    console.log("group found");
                }
+               gVertexSelected = false;
+               gSelectedObject = null;
+               gIsMouseAtVertex = null;
            });
 
            function checkIfMouseAtVertex(mousePos) 
@@ -201,7 +184,6 @@
                        {
                            currObj.setCoords();
                            var oPoints = currObj.points; // Get array of points for this object/polyline
-
                            oPoints.forEach(function(p) {
                                tx = currObj.getCenterPoint().x + p.x;
                                ty = currObj.getCenterPoint().y + p.y;
@@ -219,6 +201,8 @@
                                {
                                    // console.log("focused");
                                    isSet = pos;
+                                   gSelectedObject = currObj;
+                                   gSelectedPointInPolyLine = oPoints.indexOf(p);
                                }
                            });
                        }
@@ -240,8 +224,6 @@
                                  });
                canvas.renderAll();
            }
-
-
 
            function addPolyLine(options) 
            {
@@ -364,4 +346,34 @@
                    }
                    canvas.renderAll();
                });
+           }
+
+           function getAbsolutePoints(inputObject)
+           {
+               if (inputObject.type == "polyline")
+               {
+                   var absolutePoints = inputObject.points;
+
+                   for (tI = 1; tI < absolutePoints.length - 1; tI++)
+                   {
+                       /* console.log(
+                                    inputObject.getCenterPoint().x
+                                   ,inputObject.getCenterPoint().y
+                                   ,absolutePoints[tI].x
+                                   ,absolutePoints[tI].y
+                                   ); */
+                       tx = absolutePoints[tI].x + inputObject.getCenterPoint().x;
+                       ty = absolutePoints[tI].y + inputObject.getCenterPoint().y;
+                       var pos = fabric.util.rotatePoint(
+                           new fabric.Point(tx, ty),
+                           new fabric.Point(
+                                      inputObject.getCenterPoint().x
+                                    , inputObject.getCenterPoint().y)
+                                    , fabric.util.degreesToRadians(inputObject.angle)
+                                           );
+                       absolutePoints[tI].x = pos.x;
+                       absolutePoints[tI].y = pos.y;
+                   }
+                   return absolutePoints;
+               }
            }
