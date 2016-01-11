@@ -187,7 +187,11 @@
                        {
                            currObj.setCoords();
                            var oPoints = currObj.points; // Get array of points for this object/polyline
-                           oPoints.forEach(function(p) {
+                           oPoints.forEach(function(p, i) {
+                               if (i == 0 || i == oPoints.length - 1)
+                               {
+                                   return;
+                               }
                                tx = currObj.getCenterPoint().x + p.x;
                                ty = currObj.getCenterPoint().y + p.y;
                                var pos = fabric.util.rotatePoint(
