@@ -85,6 +85,11 @@
                                                ,top: gIsMouseAtVertex.y
                                                ,stroke: 'white'
                                                ,strokeWidth: 2
+                                               ,hasControls: false
+                                               ,hasBorders: false
+                                               ,lockScalingX: false
+                                               ,lockScalingY: false
+                                               ,lockRotation: false
                                               }
                                  );
                        // setTimeout(animateVertexCircle(vertexFocus), 1);
@@ -132,7 +137,6 @@
                                curr.fromNode = object;
                                curr.toNode = polyline.toNode;
 
-                               objectList.push(curr);
                                arr.push(curr);
                                polyline.toNode.addChild.to.push(curr);
                                canvas.add(curr);
@@ -156,7 +160,6 @@
                                curr.toNode = object;
                                curr.fromNode = polyline.fromNode;
 
-                               objectList.push(curr);
                                arr.push(curr);
                                polyline.fromNode.addChild.from.push(curr);
                                canvas.add(curr);
@@ -280,7 +283,6 @@
                objPolyline.fromNode = fromObject;
                objPolyline.toNode = toObject;
 
-               objectList.push(objPolyline);
                canvas.add(objPolyline);
 
                objPolyline.sendToBack();

@@ -6,8 +6,14 @@
     <script type="text/javascript" src="../usere/jquery-2.1.4.min.js"></script>
     <script src="../fabric/dist/fabric.js"></script>
     <script>
-       var objectList = [];
        var vertexFocus = null; // For showing polyline vertices when mouse moves over it
+       var gIsMouseAtVertex = null;
+       var gVertexSelected = false;
+       var gSelectedObject = null;
+       var gSelectedPointInPolyLine = null;
+       var gSaveHistory = true;
+       var gSavedStates = [];
+       var gNumMods = 0;
        var canvas;
        var gContextObj = null;
        var curX, curY;
@@ -104,14 +110,6 @@
                        canvas.remove(delThis);
                    }
                }
-               for (ctr = 0; ctr < objectList.length; ctr++)
-               {
-                   if (delThis.id == objectList[ctr].id)
-                   {
-                       objectList.pop(delThis);
-                       canvas.remove(delThis);
-                   }
-               }
                delThis = null;
            }
 
@@ -166,6 +164,10 @@
               <input id="showObject" type="button" name="btnShowObject" value="Show selected object" />
               <input id="renderAll" type="button" name="btnRenderAll" value="Render All" />
               <input id="dumpCanvasObj" type="button" name="btnDumpCanvasObj" value="Dump canvas object" />
+              <hr/>
+              <input id="undoMod" type="button" name="btnUndoMod" value="Undo" />
+              <input id="redoMod" type="button" name="btnRedoMod" value="Redo" />
+              <hr/>
               <label id="cursor"></label>
               <hr/>
               <label id="mousePos"></label>

@@ -1,3 +1,5 @@
+           ['object:modified', 'object:added'].forEach(updateModifications);
+
            $("#createBox").click(function()
            {
                var rect = new fabric.Rect(
@@ -10,7 +12,6 @@
                                       }
                                      );
                rect.id = guid();
-               objectList.push(rect);
                canvas.add(rect);
            });
            $("#createCircle").click(function()
@@ -24,7 +25,6 @@
                                       }
                                      );
                objCircle.id = guid();
-               objectList.push(objCircle);
                canvas.add(objCircle);
            });
 
@@ -52,3 +52,41 @@
                return objPolyLine;
            }        
 
+           // Undo and redo 
+           function updateModifications()
+           {
+               if (gSaveHistory === true)
+               {
+                   console.log("Saving state");
+                   myjson = JSON.stringify(canvas);
+                   gSavedStates.push(myjson);
+               }
+           }
+
+           $("#undoMod").click(function()
+           {
+               if (gNumMods < gSavedStates.length)
+               {
+                   canvas.clear().renderAll();
+                   canvas.loadFromJSON(gSavedStates[gSavedStates.length - 1 - gNumMods - 1]);
+                   canvas.renderAll();
+                   //console.log("geladen " + (gSavedStates.length - 1 - gNumMods - 1));
+                   //console.log("gSavedStates " + gSavedStates.length);
+                   gNumMods += 1;
+                   //console.log("gNumMods " + gNumMods);
+               }
+           });
+
+           $("#redoMod").click(function()
+           {
+               if (gNumMods > 0)
+               {
+                   canvas.clear().renderAll();
+                   canvas.loadFromJSON(gSavedStates[gSavedStates.length - 1 - gNumMods + 1]);
+                   canvas.renderAll();
+                   //console.log("geladen " + (gSavedStates.length - 1 - gNumMods + 1));
+                   gNumMods -= 1;
+                   //console.log("gSavedStates " + gSavedStates.length);
+                   //console.log("gNumMods " + gNumMods);
+               }
+           });
