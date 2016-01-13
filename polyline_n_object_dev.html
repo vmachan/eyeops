@@ -13,10 +13,14 @@
        var gSelectedPointInPolyLine = null;
        var gSaveHistory = true;
        var gSavedStates = [];
-       var gNumMods = 0;
+       var gObjectList = [];
+       var gUndoPtr = 0;
        var canvas;
        var gContextObj = null;
        var curX, curY;
+
+       var MAX_UNDO = 10;
+       var MIN_UNDO = 1;
 
        function loadjscssfile(filename, filetype)
        {
@@ -55,7 +59,9 @@
        {
            canvas = new fabric.Canvas('canvas');
 
-           // ['object:moving', 'object:scaling', 'object:rotating'].forEach(addChildMovePolyLine);
+           // Populate initial state with empty array of objects
+           gObjectList = new Array();
+           gObjectList.push(new Array());
 
            $('html').keyup(function(e)
                {
@@ -167,6 +173,8 @@
               <hr/>
               <input id="undoMod" type="button" name="btnUndoMod" value="Undo" />
               <input id="redoMod" type="button" name="btnRedoMod" value="Redo" />
+              <hr/>
+              <input id="showSavedState" type="button" name="btnShowSavedState" value="Show Saved State" />
               <hr/>
               <label id="cursor"></label>
               <hr/>
