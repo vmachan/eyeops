@@ -92,7 +92,7 @@
                        canvas.renderAll();
                    }
                }
-               if (gUndoPtr > MAX_UNDO || (undoLength - gUndoPtr) <= MIN_UNDO) 
+               if (gUndoPtr >= MAX_UNDO || (undoLength - gUndoPtr) <= MIN_UNDO) 
                {
                    console.log("disable undo");
                    $(this).prop("disabled",true);
@@ -112,7 +112,7 @@
 
                if (undoLength > MIN_UNDO)
                {
-                   if (gUndoPtr < MAX_UNDO && gUndoPtr >= MIN_UNDO && gUndoPtr < undoLength)
+                   if (gUndoPtr <= MAX_UNDO && gUndoPtr >= MIN_UNDO && gUndoPtr < undoLength)
                    {
                        console.log("redoing.. ");
                        canvas.clear().renderAll();
