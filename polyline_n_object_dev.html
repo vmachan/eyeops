@@ -2,19 +2,20 @@
 <html lang="en">
   <head>
     <link rel="stylesheet" type="text/css" href="commons.css"></script>
-    <script type="text/javascript" src="../usere/d3/d3.min.js"></script>
-    <script type="text/javascript" src="../usere/jquery-2.1.4.min.js"></script>
-    <script src="../fabric/dist/fabric.js"></script>
+    <script type="text/javascript" src="lib/d3.min.js"></script>
+    <script type="text/javascript" src="lib/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="lib/fabric.min.js"></script>
     <script>
        var vertexFocus = null; // For showing polyline vertices when mouse moves over it
        var gIsMouseAtVertex = null;
        var gVertexSelected = false;
        var gSelectedObject = null;
        var gSelectedPointInPolyLine = null;
+
        var gSaveHistory = true;
        var gSavedStates = [];
-       var gObjectList = [];
        var gUndoPtr = 0;
+
        var canvas;
        var gContextObj = null;
        var curX, curY;
@@ -43,6 +44,8 @@
                document.getElementsByTagName("head")[0].appendChild(fileref)
        }
          
+       loadjscssfile("customRect.js", "js") //dynamically load and add this .js file
+       loadjscssfile("customPolyLine.js", "js") //dynamically load and add this .js file
        loadjscssfile("rightclick.js", "js") //dynamically load and add this .js file
        loadjscssfile("createobjs.js", "js") //dynamically load and add this .js file
        loadjscssfile("mouseevents.js", "js") //dynamically load and add this .js file
@@ -59,10 +62,6 @@
        {
            canvas = new fabric.Canvas('canvas');
 
-           // Populate initial state with empty array of objects
-           gObjectList = new Array();
-           gObjectList.push(new Array());
-
            $('html').keyup(function(e)
                {
                    if (e.keyCode == 46)
@@ -78,21 +77,25 @@
                }
            });
 
-           function deleteObject(delThis) {
+           function deleteObject(delThis)
+           {
                var object = delThis;
 
                // remove lines (if any)
-               if (object.addChild) {
+               if (object.addChild)
+               {
                    if (object.addChild.from)
                        // step backwards since we are deleting
-                       for (var i = object.addChild.from.length - 1; i >= 0; i--) {
+                       for (var i = object.addChild.from.length - 1; i >= 0; i--)
+                       {
                            var line = object.addChild.from[i];
                            var toObj = line.toNode;
                            deletefromCanvasUsingGuid(line, object.addChild.from, true);
                            deletefromCanvasUsingGuid(line, toObj.addChild.to, true);
                        }
                    if (object.addChild.to)
-                       for (var i = object.addChild.to.length - 1; i >= 0; i--) {
+                       for (var i = object.addChild.to.length - 1; i >= 0; i--)
+                       {
                            var line = object.addChild.to[i];
                            var fromObj = line.fromNode;
                            deletefromCanvasUsingGuid(line, object.addChild.to, true);

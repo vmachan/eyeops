@@ -1,4 +1,3 @@
-           // ['object:moving', 'object:scaling', 'object:rotating'].forEach(movePolyLine);
            ['object:moving', 'object:scaling', 'object:rotating'].forEach(mouseMovePolyLine);
 
            canvas.on("mouse:over", function(e) {
@@ -101,7 +100,7 @@
 
            canvas.on('mouse:up', function (options) 
            {
-               // console.log("mouse-up event");
+               console.log("mouse-up event");
                // console.log(options.target);
 
                var object = options.target;
@@ -110,7 +109,9 @@
                    return;
                }
                var objectCenter = object.getCenterPoint();
-               if (object.type != 'group')
+               if (    object.type != 'group'
+                    && canvas.addChild == true // Add polyline flag check
+                  )
                {
                    if (object.addChild)
                    {
@@ -130,12 +131,12 @@
                                polyline.points[polyline.points.length - 1].y
                                    = curr[0].toNode.getCenterPoint().y;
 
-                               var translatedPoints = getAbsolutePoints(polyline);
-                               polyline.points = translatedPoints;
+                               // var translatedPoints = getAbsolutePoints(polyline);
+                               // polyline.points = translatedPoints;
 
-                               curr = makePolyLine(polyline.points);
-                               curr.fromNode = object;
-                               curr.toNode = polyline.toNode;
+                               curr = makePolyLine(polyline.points, object, polyline.toNode);
+                               // curr.fromNode = object;
+                               // curr.toNode = polyline.toNode;
 
                                arr.push(curr);
                                polyline.toNode.addChild.to.push(curr);
@@ -153,12 +154,13 @@
                                polyline.points[0].x = curr[0].fromNode.getCenterPoint().x;
                                polyline.points[0].y = curr[0].fromNode.getCenterPoint().y;
 
-                               var translatedPoints = getAbsolutePoints(polyline);
-                               polyline.points = translatedPoints;
+                               // var translatedPoints = getAbsolutePoints(polyline);
+                               // polyline.points = translatedPoints;
 
-                               curr = makePolyLine(polyline.points);
-                               curr.toNode = object;
-                               curr.fromNode = polyline.fromNode;
+                               // console.log("here", polyline.points);
+                               curr = makePolyLine(polyline.points, polyline.fromNode, object);
+                               // curr.toNode = object;
+                               // curr.fromNode = polyline.fromNode;
 
                                arr.push(curr);
                                polyline.fromNode.addChild.from.push(curr);
@@ -234,7 +236,7 @@
 
            function addPolyLine(options) 
            {
-               // console.log("in addPolyLine");
+               console.log("in addPolyLine");
                canvas.off('object:selected', addPolyLine);
 
                var fromObject = canvas.addChild.start; // console.log(fromObject);
@@ -244,16 +246,20 @@
 
                canvas.addChild = undefined;
                canvas.renderAll();
+               saveState();
            }
 
            function deletefromCanvasUsingGuid(thisObj, fromThisArray, removeFromArray)
            {
+               console.log("deletefromCanvasUsingGuid");
+               console.trace();
                for (ctr = 0; ctr < fromThisArray.length; ctr++)
                {
                    if (thisObj.id == fromThisArray[ctr].id)
                    {
                        if (removeFromArray)
                        {
+                           console.log("checking with.. ", thisObj.id, fromThisArray[ctr].id);
                            fromThisArray.splice(ctr, 1);
                        }
                        canvas.remove(thisObj);
@@ -270,7 +276,7 @@
                if (polyPoints)
                {
                    objPolyline = makePolyLine(
-                                              polyPoints
+                                              polyPoints, fromObject, toNode
                                              );
                }
                else
@@ -282,6 +288,8 @@
                                                 , new Point(toObject.getCenterPoint().x
                                                           , toObject.getCenterPoint().y)
                                               ]
+                                             ,fromObject
+                                             ,toObject
                                              );
                }
                objPolyline.fromNode = fromObject;
@@ -315,6 +323,8 @@
                    to: (toObject.addChild && toObject.addChild.to) || []
                }
                toObject.addChild.to.push(objPolyline);
+               /*
+               */
            }
 
 

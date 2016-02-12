@@ -1,17 +1,21 @@
            $("#createBox").click(function()
            {
-               var rect = new fabric.Rect(
+               var l_addChild = new Object();
+               var rect = new fabric.CustomRect(
                                       {
                                         top: 200,
                                         left: 200,
                                         width: 60,
                                         height: 70,
-                                        fill: 'red'
+                                        fill: 'red',
+                                        id: guid()
+                                      }
+                                     ,{
+                                        addChild: l_addChild
                                       }
                                      );
-               rect.id = guid();
                canvas.add(rect);
-               // updateModifications();
+               saveState();
            });
            $("#createCircle").click(function()
            {
@@ -25,14 +29,15 @@
                                      );
                objCircle.id = guid();
                canvas.add(objCircle);
-               // updateModifications();
+               saveState();
            });
 
-           function makePolyLine(coords) 
+           function makePolyLine(coords, inFromNode, inToNode) 
            {
-               // console.log("in makePolyLine");
+               console.log("in makePolyLine");
 
-               var objPolyLine = new fabric.Polyline(coords, {
+               // var objPolyLine = new fabric.Polyline(coords, {
+               var objPolyLine = new fabric.CustomPolyline(coords, {
                    fill: null,
                    stroke: '#000022', // '#'+Math.floor(Math.random()*16777215).toString(16), 
                    strokeWidth: 2,
@@ -46,92 +51,79 @@
                    perPixelTargetFind: true,
                    targetFindTolerance: 4,
                    selectable: true,
+                   fromNode: inFromNode,
+                   toNode: inToNode,
                    id: guid()
                });
-               objPolyLine.id = guid();
                return objPolyLine;
            }        
 
-           // Undo and redo 
-           function updateModifications()
+           // Save state
+           function saveState()
            {
-               // console.log("updateModifications");
+               console.log("saveState");
                if (gSaveHistory == true)
                {
-                   myjson = JSON.stringify(canvas);
-                   gSavedStates.push(myjson);
+                   var myjson = jQuery.extend(true, {}, canvas.toJSON());
+                   // myjson = canvas.toJSON();
 
-                   var tmpObjectList = [],
-                       tmpObjects = canvas.getObjects();
-
-                   for (var i = 0, len = tmpObjects.length; i < len; i++)
+                   if (gUndoPtr < (gSavedStates.length - 1))
                    {
-                       tmpObjectList.push($.extend(true, {}, tmpObjects[i]));
+                       gSavedStates.splice(gUndoPtr, (gSavedStates.length - 1 - gUndoPtr));
                    }
-                   gObjectList.push(tmpObjectList);
-                   $("#undoMod").prop("disabled",false);
-                   $("#redoMod").prop("disabled",false);
+                   gSavedStates.push(myjson);
+                   gUndoPtr = gSavedStates.length - 1;
                }
            }
 
            $("#undoMod").click(function()
            {
-               var undoLength = gObjectList.length;
-
-               console.log("undoMod", gUndoPtr, undoLength, (undoLength - 1 - gUndoPtr - 1), gObjectList);
-
-               if (undoLength > MIN_UNDO)
+               console.log("undoMod: ", gUndoPtr);
+               if (gUndoPtr <= 0)
                {
-                   if (gUndoPtr < MAX_UNDO && gUndoPtr < undoLength)
-                   {
-                       console.log("undoing.. ");
-                       canvas.clear().renderAll();
-                       
-                       canvas._objects = getObjectList(undoLength - 1 - gUndoPtr - 1);
-                       gUndoPtr += 1;
-                       canvas.renderAll();
-                   }
-               }
-               if (gUndoPtr >= MAX_UNDO || (undoLength - gUndoPtr) <= MIN_UNDO) 
-               {
-                   console.log("disable undo");
-                   $(this).prop("disabled",true);
-                   $("#redoMod").prop("disabled",false);
+                   canvas.clear();
+                   canvas.renderAll();
+                   gUndoPtr = 0;
                }
                else
                {
-                   $(this).prop("disabled",false);
+                   var loadObj = jQuery.extend(true, {}, gSavedStates[gUndoPtr - 1]);
+                   canvas.loadFromJSON(
+                                         loadObj
+                                        ,canvas.renderAll.bind(canvas)
+                                        ,function(o, obj)
+                                         {
+                                           console.log("loadfromJSON:o, obj", o, obj);
+                                         }
+                                      );
+                   gUndoPtr--;
                }
            });
 
            $("#redoMod").click(function()
            {
-               var undoLength = gObjectList.length;
+               console.log("redoMod: ", gUndoPtr);
+               if (gUndoPtr <= (gSavedStates.length - 1))
+               {
+                   var loadObj = jQuery.extend(true, {}, gSavedStates[gUndoPtr + 1]);
+                   // canvas.loadFromJSON(gSavedStates[gUndoPtr + 1]);
+                   canvas.loadFromJSON(
+                                         loadObj
+                                        ,canvas.renderAll.bind(canvas)
+                                        ,function(o, obj)
+                                         {
+                                           console.log("loadfromJSON:o, obj", o, obj);
+                                         }
+                                      );
+                   gUndoPtr++;
+               }
+               canvas.renderAll();
+           });
 
-               console.log("redoMod", gUndoPtr, undoLength, (undoLength - 1 - gUndoPtr + 1), gObjectList);
-
-               if (undoLength > MIN_UNDO)
-               {
-                   if (gUndoPtr <= MAX_UNDO && gUndoPtr >= MIN_UNDO && gUndoPtr < undoLength)
-                   {
-                       console.log("redoing.. ");
-                       canvas.clear().renderAll();
-                       
-                       canvas._objects = getObjectList(undoLength - 1 - gUndoPtr + 1);
-                       gUndoPtr -= 1;
-                       canvas.renderAll();
-                   }
-               }
-               if (gUndoPtr < MIN_UNDO || (undoLength - gUndoPtr) <= MIN_UNDO) 
-               {
-                   console.log("disable redo");
-                   $(this).prop("disabled",true);
-                   $("#undoMod").prop("disabled",false);
-               }
-               else
-               {
-                   $(this).prop("disabled",false);
-               }
+           // Save state
+           $("#showSavedState").click(function()
+           {
+               console.log(gSavedStates);
            });
 
            function getObjectList(ctr)
