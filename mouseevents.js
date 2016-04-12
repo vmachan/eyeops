@@ -1,30 +1,5 @@
+           // ['object:moving', 'object:scaling', 'object:rotating'].forEach(movePolyLine);
            ['object:moving', 'object:scaling', 'object:rotating'].forEach(mouseMovePolyLine);
-
-           canvas.on("object:modified", function(e)
-           {
-               console.log("object:modified");
-               updateModifications();
-           });
-
-           canvas.on("object:added", function(e)
-           {
-               console.log("object:added");
-               updateModifications();
-           });
-
-           canvas.on("object:removed", function(e)
-           {
-               console.log("object:removed");
-               updateModifications();
-           });
-
-/*
-           canvas.on("path:added", function(e)
-           {
-               console.log("path:added");
-               updateModifications();
-           });
-*/
 
            canvas.on("mouse:over", function(e) {
                e.target.setShadow("5px 5px 2px rgba(94, 128, 191, 0.5)");
@@ -45,7 +20,6 @@
                      // console.log("Selected object is of type - ", gContextObj.type);
                      addVertexToPolyLine(gContextObj);
                  }
-                 updateModifications();
                  return false;
            });
 
@@ -133,7 +107,6 @@
                var object = options.target;
                if (object == null)
                {
-                   updateModifications();
                    return;
                }
                var objectCenter = object.getCenterPoint();
@@ -192,14 +165,12 @@
                                canvas.add(curr);
                                curr.sendToBack();
                            })
-                       canvas.renderAll();
                    }
                } 
                else 
                {
                    console.log("group found");
                }
-               // updateModifications();
                gVertexSelected = false;
                gSelectedObject = null;
                gIsMouseAtVertex = null;
@@ -273,7 +244,6 @@
 
                canvas.addChild = undefined;
                canvas.renderAll();
-               // updateModifications();
            }
 
            function deletefromCanvasUsingGuid(thisObj, fromThisArray, removeFromArray)
@@ -413,11 +383,3 @@
                    return absolutePoints;
                }
            }
-
-           $(document).on('click', '#showSavedState', function(evt) 
-           {
-                 // console.log(gSavedStates);
-                 console.log(gObjectList);
-                 return false;
-           });
-
