@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <link rel="stylesheet" type="text/css" href="commons.css"></script>
-    <script type="text/javascript" src="../usere/d3/d3.min.js"></script>
-    <script type="text/javascript" src="../usere/jquery-2.1.4.min.js"></script>
-    <script src="../fabric/dist/fabric.js"></script>
+    <script type="text/javascript" src="lib/d3.min.js"></script>
+    <script type="text/javascript" src="lib/jquery-1.12.0.min.js"></script>
+    <script src="fabric.min.js"></script>
     <script>
        var vertexFocus = null; // For showing polyline vertices when mouse moves over it
        var gIsMouseAtVertex = null;
@@ -12,7 +12,6 @@
        var gSelectedObject = null;
        var gSelectedPointInPolyLine = null;
        var gSaveHistory = true;
-       var gSavedStates = [];
        var gObjectList = [];
        var gUndoPtr = 0;
        var canvas;
@@ -21,6 +20,12 @@
 
        var MAX_UNDO = 10;
        var MIN_UNDO = 1;
+       var gChangeLog = new Array();
+       var gChangeCtr = 0;
+
+       var gObjIsOnLine = null;
+       var gObjIsOnTheseLines = new Array();
+       var gObjIsOnTheseLinesPoint = new Array();
 
        function loadjscssfile(filename, filetype)
        {
@@ -46,6 +51,7 @@
        loadjscssfile("rightclick.js", "js") //dynamically load and add this .js file
        loadjscssfile("createobjs.js", "js") //dynamically load and add this .js file
        loadjscssfile("mouseevents.js", "js") //dynamically load and add this .js file
+       loadjscssfile("undo_redo.js", "js") //dynamically load and add this .js file
 
        /*
           Examples to load PHP as JS and CSS
@@ -119,6 +125,11 @@
                delThis = null;
            }
 
+           $("#showSavedState").click(function()
+           {
+               console.log(gChangeLog);
+           });
+
            $("#dumpCanvasObj").click(function()
            {
                console.log(canvas);
@@ -176,11 +187,11 @@
               <hr/>
               <input id="showSavedState" type="button" name="btnShowSavedState" value="Show Saved State" />
               <hr/>
-              <label id="cursor"></label>
+              Cursor:<label id="cursor"> </label>
               <hr/>
-              <label id="mousePos"></label>
+              Mouse:<label id="mousePos"> </label>
               <hr/>
-              <label id="objPos"></label>
+              Object:<label id="objPos"> </label>
             </div>
             <div class="rightClickMenu" id="rightClickMenu">
                 <ul>
