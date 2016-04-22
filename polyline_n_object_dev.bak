@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <link rel="stylesheet" type="text/css" href="commons.css"></script>
-    <script type="text/javascript" src="d3.min.js"></script>
-    <script type="text/javascript" src="jquery.min.js"></script>
-    <script src="fabric.min.js"></script>
+    <script type="text/javascript" src="../usere/d3/d3.min.js"></script>
+    <script type="text/javascript" src="../usere/jquery-2.1.4.min.js"></script>
+    <script src="../fabric/dist/fabric.js"></script>
     <script>
        var vertexFocus = null; // For showing polyline vertices when mouse moves over it
        var gIsMouseAtVertex = null;
@@ -26,9 +26,6 @@
        var gObjIsOnLine = null;
        var gObjIsOnTheseLines = new Array();
        var gObjIsOnTheseLinesPoint = new Array();
-
-       var gDownloadFile = null;
-       var gOpenFile = null;
 
        function loadjscssfile(filename, filetype)
        {
@@ -72,17 +69,17 @@
            gObjectList = new Array();
            gObjectList.push(new Array());
 
-           $('html').keyup(function(e) {
-               if (e.keyCode == 46)
+           $('html').keyup(function(e)
                {
-                   var objDel = canvas.getActiveObject();
-                   if (objDel != null) 
+                   if (e.keyCode == 46)
                    {
-                       console.log("selected object is ", objDel);
-                       objDel.remove();
-                       canvas.remove(objDel);
-                       // deleteObject(objDel);
-                       updateModifications();
+                       var objDel = canvas.getActiveObject();
+                       if (objDel != null) 
+                       {
+                           // alert("selected object is " + objDel);
+                           // objDel.remove();
+                           // canvas.remove(objDel);
+                           deleteObject(objDel);
                    }
                }
            });
@@ -153,13 +150,6 @@
            $("#addChildWithPolyLine").click(function()
            {
                var temp = canvas.getActiveObject();
-
-               if (temp == null)
-               {
-                   alert("Please select an object to start first.");
-                   return;
-               }
-
                canvas.addChild = {
                    start: temp
                }
@@ -168,69 +158,6 @@
                canvas.on('object:selected', addPolyLine /* addChildWithPolyLine */);
            });
 
-           $("#saveFile").click(function()
-           {
-               console.log("saveFile");
-               var data = new Blob([gChangeLog[gChangeCtr]], {type: 'text/plain'});
-
-               if (gDownloadFile !== null)
-               {
-                   window.URL.revokeObjectURL(gDownloadFile);
-               }
-
-               gDownloadFile = window.URL.createObjectURL(data);
-               var downloadLink = document.getElementById("downloadLink");
-               downloadLink.href = gDownloadFile;
-               downloadLink.style.display = "block";
-           });
-
-           $("#openFile").click(function()
-           {
-               this.value = null;
-           });
-
-           $("#openFile").change(function(evt)
-           {
-               var loadJSONObj = new Object();
-
-               // console.log("openFile");
-               console.log("openFile", "evt:", evt.type);
-               var files = evt.target.files; // FileList object
-
-               // files is a FileList of File objects. List some properties.
-               var loadThis = files[0];
-               var readerObj = new FileReader();
-
-               readerObj.onload = (function(inFile) {
-                   console.log("inFile:", inFile);
-                   return function(inFile) {
-                       loadJSONObj = JSON.parse(inFile.target.result);
-                       console.log(loadJSONObj);
-                       canvas.clear();
-                       canvas.loadFromJSON(
-                                            loadJSONObj
-                                           ,canvas.renderAll.bind(canvas)
-                                          );
-                       makeLinesUnSelectable();
-                   }
-               })(loadThis);
-
-               readerObj.readAsText(loadThis);
-               return false;
-           });
-
-           $("#delete").click(function()
-           {
-               var objDel = canvas.getActiveObject();
-               if (objDel != null) 
-               {
-                   console.log("selected object is ", objDel);
-                   objDel.remove();
-                   canvas.remove(objDel);
-                   // deleteObject(objDel);
-                   updateModifications();
-               }
-           });
         });
     </script>
     <title>
@@ -238,41 +165,33 @@
     </title>
     </head>
     <body>
-        <div id="main" style="width: 1200px; overflow: hidden;">
-            <div id="drawarea" style="width: 1080px; height: 600px; background-color: #FFEEFF; float: left;">
+        <div id="main" style="width: 1000px; overflow: hidden;">
+            <div id="drawarea" style="width: 800px; background-color: #FFEEFF; float: left;">
               <canvas id="canvas" 
-                      width="1080"
-                      height="598" 
+                      width="800"
+                      height="600" 
                       style="border:1px solid #000000;">
               </canvas>
             </div>
-            <div id="sidebar" align="center" style="width: 100px; background-color: #CCC; float: left; margin-left: 10px;"> 
-              <input id="createBox" class="btn-rectangle" type="button" name="btnCreateBox" value=""/>
-              <input id="createCircle" class="btn-circle" type="button" name="btnCreateCircle" value="" />
-              <input id="addChildWithPolyLine" class="btn-connector" type="button" name="btnAddChildWithPolyLine" value="Connect" />
+            <div id="sidebar" align="center" style="width: 160px; background-color: #EEEEEE; float: left; margin-left: 10px;"> 
+              <input id="createBox" type="button" name="btnCreateBox" value="Add box" />
+              <input id="createCircle" type="button" name="btnCreateCircle" value="Add circle" />
+              <input id="addChildWithPolyLine" type="button" name="btnAddChildWithPolyLine" value="Add child with Polyline" />
               <hr/>
-              <!--
               <input id="showObject" type="button" name="btnShowObject" value="Show selected object" />
               <input id="renderAll" type="button" name="btnRenderAll" value="Render All" />
               <input id="dumpCanvasObj" type="button" name="btnDumpCanvasObj" value="Dump canvas object" />
               <hr/>
-                -->
-              <input id="undoMod" class="btn-undoMod" type="button" name="btnUndoMod" value="Undo" />
-              <input id="redoMod" class="btn-redoMod" type="button" name="btnRedoMod" value="Redo" />
-              <input id="saveFile" class="btn-saveFile" type="button" name="btnSaveFile" value="Save" />
-              <input id="openFile" class="btn-openFile" type="file" name="btnOpenFile" value="Open" title=" " />
-              <a download="savefile.json" id="downloadLink" style="display: none">Download</a>
-              <input id="delete" class="btn-delete" type="button" name="btnDelete" value="Delete" />
-              <!--
+              <input id="undoMod" type="button" name="btnUndoMod" value="Undo" />
+              <input id="redoMod" type="button" name="btnRedoMod" value="Redo" />
               <hr/>
               <input id="showSavedState" type="button" name="btnShowSavedState" value="Show Saved State" />
+              <hr/>
+              Cursor:<label id="cursor"> </label>
               <hr/>
               Mouse:<label id="mousePos"> </label>
               <hr/>
               Object:<label id="objPos"> </label>
-                -->
-              <hr/>
-              X,Y:<label id="cursor"> </label>
             </div>
             <div class="rightClickMenu" id="rightClickMenu">
                 <ul>

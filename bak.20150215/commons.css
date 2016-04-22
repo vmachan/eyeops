@@ -1,0 +1,65 @@
+.rightClickMenu
+{
+    position:absolute;     
+    display: none;
+    width: 80px;
+
+    margin: 0;
+    padding: 0;
+
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.35);
+    border-radius: 4px;
+
+    font-family: Lucida Grande;
+    font-size: 14px;
+    line-height: 15px;
+}
+
+.rightClickMenu ul
+{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.rightClickMenu li
+{
+    width: 80px;
+    color:#fff;
+    border:none;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.35);
+    border-radius: 4px;
+    padding: 3px 5px 4px;
+}
+
+.rightClickMenu li:first-child
+{
+    width: 80px;
+    margin: 0;
+    padding: 3px 5px 4px;
+}
+
+.rightClickMenu a
+{
+    color: 'darkgray';
+    text-decoration: none;
+    display: block;
+    margin: 0;
+    padding: 3px 0 4px;
+
+}
+
+.rightClickMenu a:hover
+{
+    background: -webkit-linear-gradient(top, #648bf5, #2866f2);
+    background: linear-gradient(to bottom, #648bf5 0%, #2866f2 100%);
+    border-top: 1px solid #5a82eb;
+    border-bottom: 1px solid #1758e7;
+    color: #fff;
+}
+
+menu rightClickMenu a:hover::after {
+    color: #fff;
+}

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script type="text/javascript" src="../../lib/d3.min.js"></script>
+    <script type="text/javascript" src="../../lib/jquery-2.2.0.min.js"></script>
+    <script type="text/javascript" src="../../lib/fabric.min.js"></script>
+    <script>
+        var objectList = [];
+        $(document).ready(function()
+        {
+            var canvas = new fabric.Canvas('canvas');
+            ['object:moving', 'object:scaling', 'object:rotating'].forEach(addChildMoveLine);
+            canvas.on('mouse:up', refreshChildren);
+            // canvas.on('selection:created', restrictSelectionOps);
+            function restrictSelectionOps()
+            {
+                var objList = canvas.getActiveGroup();
+                objList.forEachObject(function(o) 
+                        {
+                          o.lockRotation = true;
+                        });
+            }
+            $("#createBox").click(function()
+            {
+                var rect = new fabric.Rect(
+                                       {
+                                         top: 200,
+                                         left: 200,
+                                         width: 60,
+                                         height: 70,
+                                         fill: 'red'
+                                       }
+                                      );
+                objectList.push(rect);
+                canvas.add(rect);
+            });
+            $("#createCircle").click(function()
+            {
+                var objCircle = new fabric.Circle(
+                                       {
+                                         radius: 40
+                                        ,fill: 'green'
+                                        ,left: 300
+                                        ,top: 200
+                                       }
+                                      );
+                canvas.add(objCircle);
+                objectList.push(objCircle);
+                console.log(canvas);
+            });
+            $("#createTriangle").click(function()
+            {
+                var objTriangle = new fabric.Triangle(
+                                       {
+                                         width: 80
+                                        ,height: 120
+                                        ,fill: 'blue'
+                                        ,left: 350
+                                        ,top: 250
+                                       }
+                                      );
+                objectList.push(objTriangle);
+                canvas.add(objTriangle);
+            });
+            $("#createText").click(function()
+            {
+                console.log("in createText");
+                var textStr = prompt("Enter text:", "");
+                if (textStr != null) {
+                  var objText = new fabric.Text(
+                                         textStr
+                                        ,
+                                         {
+                                           left: 100
+                                          ,top: 100 
+                                         }
+                                        );
+                  canvas.add(objText);
+                  objectList.push(objText);
+                  console.log(canvas);
+                }
+            });
+            $("#createPath").click(function()
+            {
+                var objPath = new fabric.Path('M 10 10 L 200 100 L 170 200 z');
+                objPath.set({ left: 120, top: 120, fill: 'cyan' });
+                canvas.add(objPath);
+                objectList.push(objPath);
+            });
+            $('html').keyup(function(e){
+                if(e.keyCode == 46) {
+                    var objDel = canvas.getActiveObject();
+                    if (objDel != null) 
+                    {
+                        // alert("selected object is " + objDel);
+                        // objDel.remove();
+                        // canvas.remove(objDel);
+                        deleteObject(objDel);
+                    }
+                }
+            });
+            $("#sendBackwards").click(function()
+            {
+                var objMnp = canvas.getActiveObject();
+                if (objMnp != null) 
+                {
+                    canvas.sendBackwards(objMnp);
+                }
+            });
+            $("#bringForward").click(function()
+            {
+                var objMnp = canvas.getActiveObject();
+                if (objMnp != null) 
+                {
+                    canvas.bringForward(objMnp);
+                }
+            });
+            $("#connectObject").click(function()
+            {
+                canvas.connect = true;
+            });
+            $("#groupObjects").click(function() 
+            {
+              var objList = canvas.getActiveGroup(),
+                  group = new fabric.Group();
+              objList.forEachObject(function(o) 
+                      {
+                        o.hasControls = false;
+                        o.selectable = false;
+                        o.hasBorders = false;
+                        if (o.type == 'line') 
+                        {
+                          o.lockRotation = false;
+                          o.lockMovementX = false;
+                          o.lockMovementY = false;
+                        }
+                        group.addWithUpdate(o);
+                        canvas.remove(o);
+                      });
+              group.set('left', objList.left);
+              group.set('top', objList.top);
+              group.set('width', objList.width);
+              group.set('height', objList.height);
+              group.set({ originX: objList.originX, originY: objList.originY });
+              canvas.add(group);
+            });
+            $("#ungroupObjects").click(function()
+            {
+               var objGroup = canvas.getActiveObject();
+               if (objGroup) {
+                 var items = objGroup._objects;
+                 objGroup._restoreObjectsState();
+                 for (var i = 0; i < items.length; i++) 
+                 {
+                   var obj = null;
+                   if (items[i].type == 'path') 
+                   {
+                     obj = items[i].clone(function(x) 
+                           { 
+                             obj = x;
+                             obj.hasControls = true; // items[i].hasControls = true;
+                             obj.selectable = true;  // items[i].selectable = true;
+                             obj.hasBorders = true;  // items[i].hasBorders = true;
+                             obj.flipX = items[i].flipX;
+                             obj.flipY = items[i].flipY;
+                             canvas.add(obj);        // canvas.add(items[i]);
+                           });
+                   } 
+                   else 
+                   {
+                     obj = items[i].clone();
+                     obj.hasControls = true; // items[i].hasControls = true;
+                     obj.selectable = true;  // items[i].selectable = true;
+                     obj.hasBorders = true;  // items[i].hasBorders = true;
+                     if (obj.type == 'line') 
+                     {
+                       obj.hasControls = false;
+                       obj.hasBorders = false;
+                       obj.lockRotation = false;
+                       obj.lockMovementX = false;
+                       obj.lockMovementY = false;
+                     }
+                     obj.flipX = items[i].flipX;
+                     obj.flipY = items[i].flipY;
+                     if (items[i].addChild) 
+                     {
+                       console.log("found addchild in ungrouped items");
+                       obj.addChild = items[i].addChild;
+                     }
+                     canvas.add(obj);        // canvas.add(items[i]);
+                     console.log(obj);
+                   }
+                 }
+                 canvas.remove(objGroup);
+                 canvas.renderAll();
+               }
+            });
+            $("#selectAll").click(function()
+            {
+              var objs = canvas.getObjects().map(function(o) {
+                return o.set('active', true);
+              });
+              var group = new fabric.Group(objs, {
+                originX: 'center', 
+                originY: 'center'
+              });
+              canvas._activeObject = null;
+              canvas.setActiveGroup(group.setCoords()).renderAll();
+            });
+            function makeLine(coords) {
+                return new fabric.Line(coords, {
+                    fill: 'teal',
+                    stroke: 'navy',
+                    strokeWidth: 4,
+                    hasControls: true,
+                    hasBorders: false,
+                    lockScalingX: true,
+                    lockScalingY: true,
+                    lockRotation: false, // true,
+                    lockMovementX: false, // true,
+                    lockMovementY: false, // true,
+                    perPixelTargetFind: true,
+                    selectable: true
+                });
+            }        
+            function addChildLine(options) 
+            {
+                canvas.off('object:selected', addChildLine);
+                var fromObject = canvas.addChild.start; // console.log(fromObject);
+                var toObject = options.target;
+                var from = fromObject.getCenterPoint();
+                var to = toObject.getCenterPoint();
+                var line = makeLine([from.x, from.y, to.x, to.y]);
+                canvas.add(line);
+                line.sendToBack();
+                
+                fromObject.addChild = {
+                    // this retains the existing arrays (if there were any)
+                    from: (fromObject.addChild && fromObject.addChild.from) || [],
+                    to: (fromObject.addChild && fromObject.addChild.to)
+                }
+                fromObject.addChild.from.push(line);
+                toObject.addChild = {
+                    from: (toObject.addChild && toObject.addChild.from),
+                    to: (toObject.addChild && toObject.addChild.to) || []
+                }
+                toObject.addChild.to.push(line);
+                // to remove line references when the line gets removed
+                line.addChildRemove = function () {
+                    fromObject.addChild.from.forEach(function (e, i, arr) {
+                        if (e === line)
+                            arr.splice(i, 1);
+                    });
+                    toObject.addChild.to.forEach(function (e, i, arr) {
+                        if (e === line)
+                            arr.splice(i, 1);
+                    });
+                }
+                canvas.addChild = undefined;
+            }
+            function addChildMoveLine(event) 
+            {
+                canvas.on(event, function (options) {
+                    var object = options.target;
+                    var objectCenter = object.getCenterPoint();
+                    // udpate lines (if any)
+                    if (object.type != 'group')
+                    {
+                        if (object.addChild)
+                        {
+                            if (object.addChild.from)
+                                object.addChild.from.forEach(function (line) {
+                                    line.set({ 'x1': objectCenter.x, 'y1': objectCenter.y });
+                                })
+                                if (object.addChild.to)
+                                    object.addChild.to.forEach(function (line) {
+                                        line.set({ 'x2': objectCenter.x, 'y2': objectCenter.y });
+                                    })
+                        }
+                    } 
+                    else 
+                    {
+                        console.log("group found");
+                    }
+                });
+            }
+            $("#addChild").click(function()
+            {
+                var temp = canvas.getActiveObject();
+                canvas.addChild = {
+                    start: temp
+                }
+                // for when addChild is clicked twice
+                canvas.off('object:selected', addChildLine);
+                canvas.on('object:selected', addChildLine);
+                canvas.on('selection:cleared', refreshChildren);
+            });
+            function deleteObject(delThis) {
+                // var object = canvas.getActiveObject();
+                var object = delThis;
+                // remove lines (if any)
+                if (object.addChild) {
+                    if (object.addChild.from)
+                        // step backwards since we are deleting
+                        for (var i = object.addChild.from.length - 1; i >= 0; i--) {
+                            var line = object.addChild.from[i];
+                            line.addChildRemove();
+                            line.remove();
+                        }
+                    if (object.addChild.to)
+                        for (var i = object.addChild.to.length - 1; i >= 0; i--) {
+                            var line = object.addChild.to[i];
+                            line.addChildRemove();
+                            line.remove();
+                        }
+                }
+                object.remove();
+            }
+            $("#showObject").click(function()
+            {
+                console.log(canvas.getActiveObject());
+            });
+            $("#renderAll").click(function()
+            {
+                refreshChildren();
+                canvas.renderAll();
+            });
+            function refreshChildren() 
+            { 
+               var items = canvas.getObjects();
+               var actGroup = canvas.getActiveGroup();
+               if (actGroup)
+               {
+                   canvas.discardActiveGroup();
+                   for(var i = 0; i < items.length; i++) 
+                   {
+                       var currItem = items[i];
+                       currItemCenter = currItem.getCenterPoint();
+                       if (currItem.addChild) 
+                       {
+                           if (currItem.addChild.from)
+                               currItem.addChild.from.forEach(function (line) {
+                                   line.set({ 'x1': currItemCenter.x, 'y1': currItemCenter.y });
+                               })
+                           ;
+                           if (currItem.addChild.to)
+                                currItem.addChild.to.forEach(function (line) {
+                                   line.set({ 'x2': currItemCenter.x, 'y2': currItemCenter.y });
+                               })
+                           ;
+                       }
+                   }
+                   canvas.setActiveGroup
+                   (
+                       new fabric.Group(
+                                           actGroup.getObjects()
+                                          ,{ originX: 'center', originY: 'center' }
+                                       )
+                   );
+                   //Set individial objects active
+                   actGroup.forEachObject
+                   (
+                       function(o) 
+                       {
+                           o.set('active', true);
+                       }
+                   );
+               }
+               canvas.renderAll();
+            }
+    });
+    </script>
+    <title>
+      Vinu's perfect drawing tool!
+    </title>
+    </head>
+    <body>
+        <div id="main" style="width: 1000px; overflow: hidden;">
+            <div id="drawarea" style="width: 800px; background-color: #FFEEFF; float: left;">
+              <canvas id="canvas" 
+                      width="800"
+                      height="600" 
+                      style="border:1px solid #000000;">
+              </canvas>
+            </div>
+            <div id="sidebar" align="center" style="width: 160px; background-color: #EEEEEE; float: left; margin-left: 10px;"> 
+              <input id="createBox" type="button" name="btnCreateBox" value="Add box" />
+              <input id="createCircle" type="button" name="btnCreateCircle" value="Add circle" />
+              <input id="createTriangle" type="button" name="btnCreateTriangle" value="Add triangle" />
+              <input id="createText" type="button" name="btnCreateText" value="Add text" />
+              <input id="createPath" type="button" name="btnCreatePath" value="Add path" />
+              <hr/>
+              <input id="sendBackwards" type="button" name="btnSendBackwards" value="Send backwards" />
+              <input id="bringForward" type="button" name="btnBringForward" value="Bring forward" />
+              <hr/>
+              <input id="connectObject" type="button" name="btnConnectObject" value="Connect" />
+              <input id="addChild" type="button" name="btnAddChild" value="Add child" />
+              <hr/>
+              <input id="groupObjects" type="button" name="btnGroupObjects" value="Group selected objects" />
+              <input id="ungroupObjects" type="button" name="btnUngroupObjects" value="Un-group objects" />
+              <hr/>
+              <input id="selectAll" type="button" name="btnSelectAll" value="Select ALL" />
+              <hr/>
+              <input id="showObject" type="button" name="btnShowObject" value="Show selected object" />
+              <input id="renderAll" type="button" name="btnRenderAll" value="Render all" />
+            </div>
+        </div>
+    </body>
+</html>
