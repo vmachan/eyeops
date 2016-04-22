@@ -8,7 +8,7 @@
        {
            canvas.clear();
            gChangeCtr -= (gChangeCtr > (MIN_UNDO - 1) ? 1 : 0);
-           console.log("undoMod", gChangeCtr);
+           // console.log("undoMod", gChangeCtr);
            canvas._objects = $.map(gChangeLog[gChangeCtr].getObjects(), function(bak) 
            {
               return $.extend(true, {}, bak);
@@ -20,7 +20,7 @@
        {
            canvas.clear();
            gChangeCtr += ( ( (gChangeCtr < (MAX_UNDO - 1)) && (gChangeCtr < (gChangeLog.length - 1))) ? 1 : 0);
-           console.log("redoMod", gChangeCtr);
+           // console.log("redoMod", gChangeCtr);
            canvas._objects = $.map(gChangeLog[gChangeCtr].getObjects(), function(bak) 
            {
               return $.extend(true, {}, bak);
@@ -34,7 +34,7 @@
        {
            canvas.clear();
            gChangeCtr -= (gChangeCtr > (MIN_UNDO - 1) ? 1 : 0);
-           console.log("undoMod", gChangeCtr);
+           // console.log("undoMod", gChangeCtr);
            canvas.loadFromJSON(gChangeLog[gChangeCtr]);
            makeLinesUnSelectable();
            canvas.renderAll();
@@ -44,7 +44,7 @@
        {
            canvas.clear();
            gChangeCtr += ( ( (gChangeCtr < (MAX_UNDO - 1)) && (gChangeCtr < (gChangeLog.length - 1))) ? 1 : 0);
-           console.log("redoMod", gChangeCtr);
+           // console.log("redoMod", gChangeCtr);
            canvas.loadFromJSON(gChangeLog[gChangeCtr]);
            makeLinesUnSelectable();
            canvas.renderAll();

@@ -63,3 +63,274 @@
 menu rightClickMenu a:hover::after {
     color: #fff;
 }
+
+input#image-createBox {
+    background: #fff url('rectangle.png') no-repeat top left;
+    background-size: auto 50px;
+    width: 140px;
+    height: 52px;
+    height: 52px;
+}
+
+button, html input[type="button"], input[type="reset"], input[type="submit"] {
+    -webkit-appearance: button;
+    cursor: pointer;
+}
+
+.btn-rectangle {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background: #008877;
+    background-image: none /* url('rectangle.png') */;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-rectangle:hover {
+    font-size: 16px;
+    color: #ffffff;
+    background: #0066ff;
+    border-radius: 4px;
+}
+
+.btn-circle {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 50px;
+    -moz-user-select: none;
+    -moz-border-radius: 50px;
+    -ms-user-select: none;
+    user-select: none;
+    background: #008877;
+    background-image: none /* url('circle.png') */;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 50px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-circle:hover{
+    font-size: 16px;
+    color: #ffffff;
+    background: #0066ff;
+}
+
+.btn-connector {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('connector.png');
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-connector:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: darkred;
+    background-color: cyan;
+}
+
+.btn-undoMod {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('undo.png');
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-undoMod:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: darkred;
+    background-color: cyan;
+}
+
+.btn-redoMod {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('redo.png');
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-redoMod:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: darkred;
+    background-color: cyan;
+}
+
+.btn-saveFile {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('save.png');
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-saveFile:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: darkred;
+    background-color: cyan;
+}
+
+.btn-openFile {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('fopen.png');
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-openFile:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: darkred;
+    background-color: cyan;
+}
+
+
+.btn-delete {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('delete.png');
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-delete:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: darkred;
+    background-color: cyan;
+}
+
