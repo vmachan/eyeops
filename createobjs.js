@@ -62,3 +62,22 @@
                    .split('\n');
                console.log(stack);
            }
+
+           $("#createText").click(function()
+           {
+               var thisText = window.prompt("Enter text", "");
+               var objText = new fabric.Text(
+                                       thisText
+                                      ,{
+                                         fontSize: 20
+                                        ,left: 400
+                                        ,top: 200
+                                        ,height: 60
+                                        ,width: 120
+                                       }
+                                     );
+               objText.id = guid();
+               canvas.add(objText);
+               updateModifications();
+           });
+

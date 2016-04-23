@@ -5,6 +5,7 @@
     <script type="text/javascript" src="d3.min.js"></script>
     <script type="text/javascript" src="jquery.min.js"></script>
     <script src="fabric.min.js"></script>
+    <script src="jscolor.min.js"></script>
     <script>
        var vertexFocus = null; // For showing polyline vertices when mouse moves over it
        var gIsMouseAtVertex = null;
@@ -232,6 +233,19 @@
                }
            });
         });
+
+        function setObjectColor(thisColor)
+        {
+            // console.log("setObjectColor");
+            var objDel = canvas.getActiveObject();
+            if (objDel != null) 
+            {
+                // console.log("color picked is ", thisColor);
+                objDel.set("fill", "#" + thisColor.valueElement.value);
+                canvas.renderAll();
+                updateModifications();
+            }
+        }
     </script>
     <title>
       Polyline with moving objects - Vinu's perfect drawing tool!
@@ -246,9 +260,10 @@
                       style="border:1px solid #000000;">
               </canvas>
             </div>
-            <div id="sidebar" align="center" style="width: 100px; background-color: #CCC; float: left; margin-left: 10px;"> 
+            <div id="sidebar" align="center" style="width: 100px; background-color: lightgray; float: left; margin-left: 10px;"> 
               <input id="createBox" class="btn-rectangle" type="button" name="btnCreateBox" value=""/>
               <input id="createCircle" class="btn-circle" type="button" name="btnCreateCircle" value="" />
+              <input id="createText" class="btn-text" type="button" name="btnCreateText" value="" />
               <input id="addChildWithPolyLine" class="btn-connector" type="button" name="btnAddChildWithPolyLine" value="Connect" />
               <hr/>
               <!--
@@ -263,7 +278,9 @@
               <input id="openFile" class="btn-openFile" type="file" name="btnOpenFile" value="Open" title=" " />
               <a download="savefile.json" id="downloadLink" style="display: none">Download</a>
               <input id="delete" class="btn-delete" type="button" name="btnDelete" value="Delete" />
+              <input id="colorpick" class="btn-color jscolor {styleElement: null}" style="color: none;" onchange="setObjectColor(this.jscolor);">
               <!--
+              <input id="colorpick" class="jscolor {styleElement: null, valueElement: null}" style="width: 32px; height: 32px; background-image: url('color.png')" onchange="setObjectColor(this.jscolor);"> </input>
               <hr/>
               <input id="showSavedState" type="button" name="btnShowSavedState" value="Show Saved State" />
               <hr/>

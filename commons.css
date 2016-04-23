@@ -159,6 +159,7 @@ button, html input[type="button"], input[type="reset"], input[type="submit"] {
     -ms-user-select: none;
     user-select: none;
     background-image: url('connector.png');
+    background-color: transparent;
     background-repeat: no-repeat;
     border: 1px solid transparent;
     border-radius: 2px;
@@ -191,6 +192,7 @@ button, html input[type="button"], input[type="reset"], input[type="submit"] {
     -ms-user-select: none;
     user-select: none;
     background-image: url('undo.png');
+    background-color: transparent;
     background-repeat: no-repeat;
     border: 1px solid transparent;
     border-radius: 2px;
@@ -223,6 +225,7 @@ button, html input[type="button"], input[type="reset"], input[type="submit"] {
     -ms-user-select: none;
     user-select: none;
     background-image: url('redo.png');
+    background-color: transparent;
     background-repeat: no-repeat;
     border: 1px solid transparent;
     border-radius: 2px;
@@ -255,6 +258,7 @@ button, html input[type="button"], input[type="reset"], input[type="submit"] {
     -ms-user-select: none;
     user-select: none;
     background-image: url('save.png');
+    background-color: transparent;
     background-repeat: no-repeat;
     border: 1px solid transparent;
     border-radius: 2px;
@@ -287,6 +291,7 @@ button, html input[type="button"], input[type="reset"], input[type="submit"] {
     -ms-user-select: none;
     user-select: none;
     background-image: url('fopen.png');
+    background-color: transparent;
     background-repeat: no-repeat;
     border: 1px solid transparent;
     border-radius: 2px;
@@ -320,6 +325,7 @@ button, html input[type="button"], input[type="reset"], input[type="submit"] {
     -ms-user-select: none;
     user-select: none;
     background-image: url('delete.png');
+    background-color: transparent;
     background-repeat: no-repeat;
     border: 1px solid transparent;
     border-radius: 2px;
@@ -331,6 +337,73 @@ button, html input[type="button"], input[type="reset"], input[type="submit"] {
     font-size: 10px;
     font-weight: bold;
     color: darkred;
+    background-color: cyan;
+}
+
+.btn-text {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('text.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-text:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: darkred;
+    background-color: cyan;
+}
+
+.btn-color {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    color: transparent;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('color.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-color:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: transparent;
     background-color: cyan;
 }
 
