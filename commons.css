@@ -407,3 +407,312 @@ button, html input[type="button"], input[type="reset"], input[type="submit"] {
     background-color: cyan;
 }
 
+.btn-zoomin {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    color: transparent;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('zoomin.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-zoomin:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: transparent;
+    background-color: cyan;
+}
+
+.btn-zoomout {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    color: transparent;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('zoomout.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-zoomout:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: transparent;
+    background-color: cyan;
+}
+
+.btn-zoomreset {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    color: transparent;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('zoomreset.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-zoomreset:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: transparent;
+    background-color: cyan;
+}
+
+.btn-pointer {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    color: transparent;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('pointer.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-pointer:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: transparent;
+    background-color: cyan;
+}
+
+.btn-pencil {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    color: transparent;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('pencil.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-pencil:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: transparent;
+    background-color: cyan;
+}
+
+
+.btn-pan {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    color: transparent;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('pan.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-pan:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: transparent;
+    background-color: cyan;
+}
+
+.btn-cut {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    color: transparent;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('cut.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-cut:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: transparent;
+    background-color: cyan;
+}
+
+.btn-copy {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    color: transparent;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('copy.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-copy:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: transparent;
+    background-color: cyan;
+}
+
+.btn-paste {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    color: transparent;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('paste.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-paste:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: transparent;
+    background-color: cyan;
+}
+
+
+

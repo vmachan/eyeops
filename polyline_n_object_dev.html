@@ -31,6 +31,48 @@
        var gDownloadFile = null;
        var gOpenFile = null;
 
+       var OBJ_SNAP_PROXIMITY = 5;
+       var VRTX_SNAP_PROXIMITY = 10;
+
+       var SCALE_FACTOR = 1.1;
+       var gCanvasScale = 1;
+       var gPanning = false;
+
+       var COPY_PASTE_SHIFT = 10;
+       var gClipboardObject = null;
+       var gClipboardObjectGroup = new Array();
+       var gFabricObjectGroup = new fabric.Group();
+
+       function init()
+       {
+           vertexFocus = null;
+           gIsMouseAtVertex = null;
+           gVertexSelected = false;
+           gSelectedObject = null;
+           gSelectedPointInPolyLine = null;
+           gSaveHistory = true;
+           gObjectList = [];
+           gUndoPtr = 0;
+           gContextObj = null;
+   
+           gChangeLog = new Array();
+           gChangeCtr = 0;
+
+           gObjIsOnLine = null;
+           gObjIsOnTheseLines = new Array();
+           gObjIsOnTheseLinesPoint = new Array();
+
+           gDownloadFile = null;
+           gOpenFile = null;
+
+           gCanvasScale = 1;
+           gPanning = false;
+
+           gClipboardObject = null;
+           gClipboardObjectGroup = new Array();
+           gFabricObjectGroup = new fabric.Group();
+       }
+
        function loadjscssfile(filename, filetype)
        {
            if (filetype=="js")
@@ -56,6 +98,8 @@
        loadjscssfile("createobjs.js", "js") //dynamically load and add this .js file
        loadjscssfile("mouseevents.js", "js") //dynamically load and add this .js file
        loadjscssfile("undo_redo.js", "js") //dynamically load and add this .js file
+       loadjscssfile("cutpaste.js", "js") //dynamically load and add this .js file
+       loadjscssfile("zoom.js", "js") //dynamically load and add this .js file
 
        /*
           Examples to load PHP as JS and CSS
@@ -85,6 +129,12 @@
                        // deleteObject(objDel);
                        updateModifications();
                    }
+               }
+
+               if (e.keyCode === 27) // ESCAPE key
+               {
+                   gPanning = false;
+                   canvas.isDrawingMode = false;
                }
            });
 
@@ -181,12 +231,14 @@
 
                gDownloadFile = window.URL.createObjectURL(data);
                var downloadLink = document.getElementById("downloadLink");
+               downloadLink.download = window.prompt("Enter file name:", "saveFile.json");
                downloadLink.href = gDownloadFile;
                downloadLink.style.display = "block";
            });
 
            $("#openFile").click(function()
            {
+               init();
                this.value = null;
            });
 
@@ -195,7 +247,7 @@
                var loadJSONObj = new Object();
 
                // console.log("openFile");
-               console.log("openFile", "evt:", evt.type);
+               // console.log("openFile", "evt:", evt.type);
                var files = evt.target.files; // FileList object
 
                // files is a FileList of File objects. List some properties.
@@ -203,10 +255,10 @@
                var readerObj = new FileReader();
 
                readerObj.onload = (function(inFile) {
-                   console.log("inFile:", inFile);
+                   // console.log("inFile:", inFile);
                    return function(inFile) {
                        loadJSONObj = JSON.parse(inFile.target.result);
-                       console.log(loadJSONObj);
+                       // console.log(loadJSONObj);
                        canvas.clear();
                        canvas.loadFromJSON(
                                             loadJSONObj
@@ -230,6 +282,47 @@
                    canvas.remove(objDel);
                    // deleteObject(objDel);
                    updateModifications();
+               }
+           });
+
+           $('#zoomin').click(function(){
+               canvas.setZoom(canvas.getZoom() * SCALE_FACTOR ) ;
+               // zoomIn();
+           });
+    
+           $('#zoomout').click(function(){
+               canvas.setZoom(canvas.getZoom() / SCALE_FACTOR ) ;
+               // zoomOut();
+           });
+    
+           $('#zoomreset').click(function(){
+               canvas.setZoom(1) ;
+               // zoomReset();
+           });
+    
+           $('#pointer').click(function(){
+               canvas.isDrawingMode = false;
+               gPanning = false;
+               canvas.selection = false;
+           });
+    
+           $('#pencil').click(function(){
+               canvas.isDrawingMode = true;
+               canvas.selection = false;
+           });
+    
+           $('#pan').click(function()
+           {
+               console.log("pan");
+               if (gPanning == true)
+               {
+                   gPanning = false;
+                   canvas.selection = false;
+               }
+               else
+               {
+                   gPanning = true;
+                   canvas.selection = true;
                }
            });
         });
@@ -261,10 +354,12 @@
               </canvas>
             </div>
             <div id="sidebar" align="center" style="width: 100px; background-color: lightgray; float: left; margin-left: 10px;"> 
-              <input id="createBox" class="btn-rectangle" type="button" name="btnCreateBox" value=""/>
-              <input id="createCircle" class="btn-circle" type="button" name="btnCreateCircle" value="" />
-              <input id="createText" class="btn-text" type="button" name="btnCreateText" value="" />
-              <input id="addChildWithPolyLine" class="btn-connector" type="button" name="btnAddChildWithPolyLine" value="Connect" />
+              <input id="pencil" class="btn-pencil" type="button" name="btnPencil" value="Draw" title="Freehand"/>
+              <input id="pointer" class="btn-pointer" type="button" name="btnPointer" value="Pointer" title="Pointer"/>
+              <input id="createBox" class="btn-rectangle" type="button" name="btnCreateBox" value="" title="Add rectangle"/>
+              <input id="createCircle" class="btn-circle" type="button" name="btnCreateCircle" value="" title="Add circle"/>
+              <input id="createText" class="btn-text" type="button" name="btnCreateText" value="" title="Add text"/>
+              <input id="addChildWithPolyLine" class="btn-connector" type="button" name="btnAddChildWithPolyLine" value="Connect" title="Connect object"/>
               <hr/>
               <!--
               <input id="showObject" type="button" name="btnShowObject" value="Show selected object" />
@@ -272,13 +367,19 @@
               <input id="dumpCanvasObj" type="button" name="btnDumpCanvasObj" value="Dump canvas object" />
               <hr/>
                 -->
-              <input id="undoMod" class="btn-undoMod" type="button" name="btnUndoMod" value="Undo" />
-              <input id="redoMod" class="btn-redoMod" type="button" name="btnRedoMod" value="Redo" />
-              <input id="saveFile" class="btn-saveFile" type="button" name="btnSaveFile" value="Save" />
-              <input id="openFile" class="btn-openFile" type="file" name="btnOpenFile" value="Open" title=" " />
+              <input id="cut" class="btn-cut" type="button" name="btncut" value="Cut" title="Cut"/>
+              <input id="copy" class="btn-copy" type="button" name="btnCopy" value="Copy" title="Copy"/>
+              <input id="paste" class="btn-paste" type="button" name="btnPaste" value="Paste" title="Paste"/>
+              <input id="undoMod" class="btn-undoMod" type="button" name="btnUndoMod" value="Undo" title="Undo"/>
+              <input id="redoMod" class="btn-redoMod" type="button" name="btnRedoMod" value="Redo" title="Paste"/>
+              <input id="saveFile" class="btn-saveFile" type="button" name="btnSaveFile" value="Save" title="Save to file"/>
+              <input id="openFile" class="btn-openFile" type="file" name="btnOpenFile" value="Open" title="Open file" />
               <a download="savefile.json" id="downloadLink" style="display: none">Download</a>
-              <input id="delete" class="btn-delete" type="button" name="btnDelete" value="Delete" />
-              <input id="colorpick" class="btn-color jscolor {styleElement: null}" style="color: none;" onchange="setObjectColor(this.jscolor);">
+              <input id="delete" class="btn-delete" type="button" name="btnDelete" value="Delete" title="Delete"/>
+              <input id="colorpick" class="btn-color jscolor {styleElement: null}" style="color: none;" onchange="setObjectColor(this.jscolor);" title="Pick color">
+              <input id="zoomin" class="btn-zoomin" type="button" name="btnZoomIn" value="Zoom In" title="Zoom in"/>
+              <input id="zoomout" class="btn-zoomout" type="button" name="btnZoomOut" value="Zoom Out" title="Zoom out"/>
+              <input id="zoomreset" class="btn-zoomreset" type="button" name="btnZoomReset" value="Zoom Reset" title="Reset zoom"/>
               <!--
               <input id="colorpick" class="jscolor {styleElement: null, valueElement: null}" style="width: 32px; height: 32px; background-image: url('color.png')" onchange="setObjectColor(this.jscolor);"> </input>
               <hr/>
@@ -288,6 +389,7 @@
               <hr/>
               Object:<label id="objPos"> </label>
                 -->
+              <input id="pan" class="btn-pan" type="button" name="btnPan" value="Pan" title="Pan mode"/>
               <hr/>
               X,Y:<label id="cursor"> </label>
             </div>

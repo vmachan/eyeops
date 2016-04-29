@@ -96,6 +96,8 @@
 
            canvas.on("mouse:down", function(e)
            {
+               // console.log("e.target in moving is ", e.target);
+
                if ($('#rightClickMenu').css("display", "block"))
                {
                    $('#rightClickMenu').css("display", "none");
@@ -110,7 +112,16 @@
                {
                    gVertexSelected = true;
                }
-               gSelectedObject = e.target;
+               if (e.target != null)
+               {
+                   // console.log("setting gSelectedObject to ", e.target);
+                   gSelectedObject = e.target;
+               }
+               if (gPanning == true)
+               {
+                   // console.log("gPanning set to true");
+                   canvas.selection = true;
+               }
            });
 
            canvas.on('mouse:move', function (options) 
@@ -158,6 +169,18 @@
                        // setTimeout(animateVertexCircle(vertexFocus), 1);
                        canvas.add(vertexFocus);
                    }
+                   else
+                   {
+                       if (gPanning == true && canvas.isDrawingMode == false)
+                       {
+                           var units = 10;
+                           var delta = new fabric.Point(
+                                                  options.e.movementX
+                                                 ,options.e.movementY
+                                                       );
+                           canvas.relativePan(delta);
+                       }
+                   }
                }
                canvas.renderAll();
            });
@@ -171,6 +194,8 @@
                gIsMouseAtVertex = null;
                canvas.remove(vertexFocus);
                vertexFocus = null;
+               // gPanning = false;
+               // canvas.selection = false;
            });
 
            function addPolyLine(options) 
@@ -305,10 +330,10 @@
                        for (pCtr = 0; pCtr < absPoints.length; pCtr++)
                        {
                            if (
-                                   (   inCenterPoint.x <= absPoints[pCtr].x + 2
-                                    && inCenterPoint.x >= absPoints[pCtr].x - 2) 
-                                && (   inCenterPoint.y <= absPoints[pCtr].y + 2
-                                    && inCenterPoint.y >= absPoints[pCtr].y - 2) 
+                                   (   inCenterPoint.x <= absPoints[pCtr].x + OBJ_SNAP_PROXIMITY
+                                    && inCenterPoint.x >= absPoints[pCtr].x - OBJ_SNAP_PROXIMITY) 
+                                && (   inCenterPoint.y <= absPoints[pCtr].y + OBJ_SNAP_PROXIMITY
+                                    && inCenterPoint.y >= absPoints[pCtr].y - OBJ_SNAP_PROXIMITY) 
                               )
                            {
                                // return(canvas._objects[ctr]);
@@ -395,8 +420,8 @@
                                $('#mousePos').text("x:" + mousePos.x + "y:" + mousePos.y);
                                $('#objPos').text("x:" + pos.x + "y:" + pos.y);
 
-                               if (   (pos.x + 10 >= mousePos.x && pos.x - 10 <= mousePos.x) 
-                                   && (pos.y + 10 >= mousePos.y && pos.y - 10 <= mousePos.y) 
+                               if (   (pos.x + VRTX_SNAP_PROXIMITY >= mousePos.x && pos.x - VRTX_SNAP_PROXIMITY <= mousePos.x) 
+                                   && (pos.y + VRTX_SNAP_PROXIMITY >= mousePos.y && pos.y - VRTX_SNAP_PROXIMITY <= mousePos.y) 
                                   )
                                {
                                    // console.log("focused");
