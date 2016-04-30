@@ -3,6 +3,7 @@
            console.log("cut");
            copyObjects();
            deleteObjects();
+           canvas.deactivateAll();
            canvas.renderAll();
            updateModifications();
        });
@@ -57,19 +58,22 @@
        {
            if (canvas.getActiveGroup())
            {
-               var ctr = 0;
-               for (ctr = 0; ctr < canvas.getActiveGroup().objects.length; ctr++)
-               {
-                   canvas.getActiveGroup().objects[ctr].remove();
-                   canvas.remove(canvas.getActiveGroup().objects[ctr]);
-               }                    
+               canvas.getActiveGroup().forEachObject
+               (
+                   function(o)
+                   {
+                       canvas.remove(o)
+                   }
+               );
+               canvas.discardActiveGroup().renderAll();
            }
            else
-           if (canvas.getActiveObject())
            {
-               canvas.getActiveObject().remove();
                canvas.remove(canvas.getActiveObject());
            }
+
+           gClipboardObject = null;
+           while (gClipboardObjectGroup.pop()) {}
        }
 
        $("#paste").click(function()

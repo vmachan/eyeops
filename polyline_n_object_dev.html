@@ -274,6 +274,7 @@
 
            $("#delete").click(function()
            {
+               /*
                var objDel = canvas.getActiveObject();
                if (objDel != null) 
                {
@@ -283,6 +284,11 @@
                    // deleteObject(objDel);
                    updateModifications();
                }
+               */
+               deleteObjects();
+               canvas.deactivateAll();
+               canvas.renderAll();
+               updateModifications();
            });
 
            $('#zoomin').click(function(){
