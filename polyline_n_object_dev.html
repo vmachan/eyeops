@@ -4,6 +4,7 @@
     <link rel="stylesheet" type="text/css" href="commons.css"></script>
     <script type="text/javascript" src="d3.min.js"></script>
     <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.mousewheel.js"></script>
     <script src="fabric.min.js"></script>
     <script src="jscolor.min.js"></script>
     <script>
@@ -43,6 +44,15 @@
        var gClipboardObjectGroup = new Array();
        var gFabricObjectGroup = new fabric.Group();
 
+       var ZOOM_FACTOR = 0.1;
+       var currZoom = 100;
+       var zClickPosX = null;
+       var zClickPosY = null;
+       var zMovePosX = null;
+       var zMovePosY = null;
+       var zOldPosX = null;
+       var zOldPosY = null;
+
        function init()
        {
            vertexFocus = null;
@@ -67,10 +77,22 @@
 
            gCanvasScale = 1;
            gPanning = false;
+           canvas.isDrawingMode = false;
+           canvas.selection = true;
 
            gClipboardObject = null;
            gClipboardObjectGroup = new Array();
            gFabricObjectGroup = new fabric.Group();
+
+           currZoom = 100;
+           zClickPosX = null;
+           zClickPosY = null;
+           zMovePosX = null;
+           zMovePosY = null;
+           zOldPosX = null;
+           zOldPosY = null;
+
+           updateMap($('.map_overlay'), $('.map_outline'), 1.0, true, false);
        }
 
        function loadjscssfile(filename, filetype)
@@ -236,6 +258,11 @@
                downloadLink.style.display = "block";
            });
 
+           $("#downloadLink").click(function()
+           {
+               downloadLink.style.display = "none";
+           });
+
            $("#openFile").click(function()
            {
                init();
@@ -274,17 +301,6 @@
 
            $("#delete").click(function()
            {
-               /*
-               var objDel = canvas.getActiveObject();
-               if (objDel != null) 
-               {
-                   console.log("selected object is ", objDel);
-                   objDel.remove();
-                   canvas.remove(objDel);
-                   // deleteObject(objDel);
-                   updateModifications();
-               }
-               */
                deleteObjects();
                canvas.deactivateAll();
                canvas.renderAll();
@@ -293,23 +309,32 @@
 
            $('#zoomin').click(function(){
                canvas.setZoom(canvas.getZoom() * SCALE_FACTOR ) ;
+               $('#zoomby').html(Math.round((canvas.getZoom() - 1) * 100) + '%');
+               updateMap($('.canvas'), $('.map_overlay'), 0.1, false, true);
+               setDims(canvas.getZoom());
                // zoomIn();
            });
     
            $('#zoomout').click(function(){
                canvas.setZoom(canvas.getZoom() / SCALE_FACTOR ) ;
+               console.log(canvas.getHeight(), canvas.getWidth());
+               $('#zoomby').html(Math.round((canvas.getZoom() - 1) * 100) + '%');
+               updateMap($('.canvas'), $('.map_overlay'), 0.1, false, true);
+               setDims(canvas.getZoom());
+
                // zoomOut();
            });
     
            $('#zoomreset').click(function(){
                canvas.setZoom(1) ;
+               $('#zoomby').html(Math.round((canvas.getZoom() - 1) * 100) + '%');
+               updateMap($('.map_overlay'), $('.map_outline'), 1.0, true, false);
                // zoomReset();
            });
     
            $('#pointer').click(function(){
                canvas.isDrawingMode = false;
                gPanning = false;
-               canvas.selection = false;
            });
     
            $('#pencil').click(function(){
@@ -319,19 +344,41 @@
     
            $('#pan').click(function()
            {
-               console.log("pan");
+               // console.log("pan");
                if (gPanning == true)
                {
                    gPanning = false;
-                   canvas.selection = false;
                }
                else
                {
                    gPanning = true;
-                   canvas.selection = true;
                }
            });
+
+           /* ----
+           $(canvas.wrapperEl).on('mousewheel', function(e) 
+           {
+               // console.log("mousewheel", e.originalEvent.wheelDelta);
+               mouseWheel(e, e.originalEvent.wheelDelta / 120);
+               e.preventDefault() && false;
+           });
+              ---- */
+
         });
+
+        function show_hide (thisElement)
+        {
+            if (document.getElementById(thisElement).style.display == 'block')
+            {
+                document.getElementById('toolslink').firstChild.data = 'Show tools';
+                document.getElementById(thisElement).style.display = 'none';
+            }
+            else if (document.getElementById(thisElement).style.display == 'none')
+            {
+                document.getElementById('toolslink').firstChild.data = 'Hide tools';
+                document.getElementById(thisElement).style.display = 'block';
+            }
+        }
 
         function setObjectColor(thisColor)
         {
@@ -351,15 +398,24 @@
     </title>
     </head>
     <body>
-        <div id="main" style="width: 1200px; overflow: hidden;">
-            <div id="drawarea" style="width: 1080px; height: 600px; background-color: #FFEEFF; float: left;">
+        <div id="main" style="overflow: hidden;">
+           <div id="drawarea" class="canvas-parent" style="width: 820px; height: 600px; background-color: #FFFFFF; float: left; overflow: auto; zoom: 100%;">
+              <div class="canvas">
               <canvas id="canvas" 
-                      width="1080"
-                      height="598" 
+                      width="800"
+                      height="590" 
                       style="border:1px solid #000000;">
               </canvas>
+              </div>
             </div>
-            <div id="sidebar" align="center" style="width: 100px; background-color: lightgray; float: left; margin-left: 10px;"> 
+            <div id="tools">
+              <a id="toolslink" href="" onclick="show_hide('sidebar'); return false;">Show tools</a>
+            </div>
+            <div id="sidebar" align="center" style="width: 100px; background-color: white; float: left; margin-left: 10px; border: 1px solid lightgray; border-radius: 8px; display: none"> 
+              <input id="openFile" class="btn-openFile" type="file" name="btnOpenFile" value="Open" title="Open file" />
+              <input id="saveFile" class="btn-saveFile" type="button" name="btnSaveFile" value="Save" title="Save to file"/>
+              <a download="savefile.json" id="downloadLink" style="display: none">Download</a>
+              <hr/>
               <input id="pencil" class="btn-pencil" type="button" name="btnPencil" value="Draw" title="Freehand"/>
               <input id="pointer" class="btn-pointer" type="button" name="btnPointer" value="Pointer" title="Pointer"/>
               <input id="createBox" class="btn-rectangle" type="button" name="btnCreateBox" value="" title="Add rectangle"/>
@@ -378,9 +434,6 @@
               <input id="paste" class="btn-paste" type="button" name="btnPaste" value="Paste" title="Paste"/>
               <input id="undoMod" class="btn-undoMod" type="button" name="btnUndoMod" value="Undo" title="Undo"/>
               <input id="redoMod" class="btn-redoMod" type="button" name="btnRedoMod" value="Redo" title="Paste"/>
-              <input id="saveFile" class="btn-saveFile" type="button" name="btnSaveFile" value="Save" title="Save to file"/>
-              <input id="openFile" class="btn-openFile" type="file" name="btnOpenFile" value="Open" title="Open file" />
-              <a download="savefile.json" id="downloadLink" style="display: none">Download</a>
               <input id="delete" class="btn-delete" type="button" name="btnDelete" value="Delete" title="Delete"/>
               <input id="colorpick" class="btn-color jscolor {styleElement: null}" style="color: none;" onchange="setObjectColor(this.jscolor);" title="Pick color">
               <input id="zoomin" class="btn-zoomin" type="button" name="btnZoomIn" value="Zoom In" title="Zoom in"/>
@@ -398,6 +451,13 @@
               <input id="pan" class="btn-pan" type="button" name="btnPan" value="Pan" title="Pan mode"/>
               <hr/>
               X,Y:<label id="cursor"> </label>
+              <hr/>
+              Zoom:<label id="zoomby"> </label>
+              <hr/>
+            </div>
+            <div class="map_overlay" id="map_overlay">
+              <div class="map_outline" id="map_outline">
+              </div>
             </div>
             <div class="rightClickMenu" id="rightClickMenu">
                 <ul>

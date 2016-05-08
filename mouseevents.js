@@ -120,17 +120,25 @@
                if (gPanning == true)
                {
                    // console.log("gPanning set to true");
-                   canvas.selection = true;
+                   gPanning = 'pan';
+                   updateMap($('.canvas-parent'), $('.map_overlay'), 0.1, false, false);
                }
+	       zClickPosX = e.pageX;
+               zClickPosY = e.pageY;
+	       zOldPosX = e.pageX;
+               zOldPosY = e.pageY;
            });
 
            canvas.on('mouse:move', function (options) 
            {
                var offset = $('#canvas').offset();
+
                x = options.e.pageX - offset.left;
                y = options.e.pageY - offset.top;
+               zMovePosX = options.e.pageX - offset.left;
+               zMovePosY = options.e.pageY - offset.top;
 
-               $('#cursor').text(x + "," + y);
+               $('#cursor').text(Math.round(x) + "," + Math.round(y));
 
                if (gVertexSelected)
                {
@@ -171,14 +179,19 @@
                    }
                    else
                    {
-                       if (gPanning == true && canvas.isDrawingMode == false)
+                       if (   
+                               gPanning == 'pan'
+                            && canvas.isDrawingMode == false
+                          )    
                        {
+                           // console.log("panning..");
                            var units = 10;
                            var delta = new fabric.Point(
                                                   options.e.movementX
                                                  ,options.e.movementY
                                                        );
                            canvas.relativePan(delta);
+                           updateMap($('.canvas'), $('.map_overlay'), 0.1, false, false);
                        }
                    }
                }
@@ -194,8 +207,11 @@
                gIsMouseAtVertex = null;
                canvas.remove(vertexFocus);
                vertexFocus = null;
-               // gPanning = false;
-               // canvas.selection = false;
+               if (gPanning == 'pan')
+               {
+                   gPanning = true;
+                   updateMap($('.canvas-parent'), $('.map_overlay'), 0.1, false, false);
+               }
            });
 
            function addPolyLine(options) 

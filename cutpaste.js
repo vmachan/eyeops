@@ -17,31 +17,25 @@
 
        function copyObjects()
        {
-           gFabricObjectGroup =  canvas.getActiveGroup();
-           if (gFabricObjectGroup != null)
+           if (canvas.getActiveGroup())
            {
                var ctr = 0;
-               var items = new Array();
-               items = gFabricObjectGroup._objects;
 
-               for (ctr = 0; ctr < items.length; ctr++)
-               {
-                   // canvas.add(items[ctr]);
-                   var obj = items[ctr];
+               canvas.getActiveGroup().forEachObject
+               (
+                   function(o)
+                   {
+                       var cloneThis = fabric.util.object.clone(o);
 
-                   var cloneThis = fabric.util.object.clone(obj);
-
-                   cloneThis.set("top", cloneThis.top
-                                     + gFabricObjectGroup._originalTop
+                       cloneThis.set("top", cloneThis.top
+                                     + canvas.getActiveGroup()._originalTop
                                      + COPY_PASTE_SHIFT);
-                   cloneThis.set("left", cloneThis.left
-                                     + gFabricObjectGroup._originalLeft
+                       cloneThis.set("left", cloneThis.left
+                                     + canvas.getActiveGroup()._originalLeft
                                      + COPY_PASTE_SHIFT);
-                   gClipboardObjectGroup[ctr] = cloneThis;
-               }
-               // gFabricObjectGroup._restoreObjectsState();
-               // canvas.remove(gFabricObjectGroup);
-               canvas.deactivateAll();
+                       gClipboardObjectGroup[ctr++] = cloneThis;
+                   }
+               );
            }
            else
            if (canvas.getActiveObject())
@@ -51,7 +45,6 @@
                currObj.set("left", currObj.left + COPY_PASTE_SHIFT);
                gClipboardObject = currObj;
            }
-           canvas.renderAll();
        }
 
        function deleteObjects()
@@ -72,8 +65,8 @@
                canvas.remove(canvas.getActiveObject());
            }
 
-           gClipboardObject = null;
-           while (gClipboardObjectGroup.pop()) {}
+           // gClipboardObject = null;
+           // while (gClipboardObjectGroup.pop()) {}
        }
 
        $("#paste").click(function()
