@@ -45,7 +45,7 @@
        var gFabricObjectGroup = new fabric.Group();
 
        var ZOOM_FACTOR = 0.1;
-       var currZoom = 100;
+       var currZoom = 1;
        var zClickPosX = null;
        var zClickPosY = null;
        var zMovePosX = null;
@@ -84,7 +84,7 @@
            gClipboardObjectGroup = new Array();
            gFabricObjectGroup = new fabric.Group();
 
-           currZoom = 100;
+           currZoom = 1;
            zClickPosX = null;
            zClickPosY = null;
            zMovePosX = null;
@@ -308,27 +308,43 @@
            });
 
            $('#zoomin').click(function(){
-               canvas.setZoom(canvas.getZoom() * SCALE_FACTOR ) ;
-               $('#zoomby').html(Math.round((canvas.getZoom() - 1) * 100) + '%');
+               // canvas.setZoom(canvas.getZoom() * SCALE_FACTOR ) ;
+               console.log(currZoom);
+               currZoom = currZoom * SCALE_FACTOR;
+
+               $('.canvas').css('transform', 'scale(' + currZoom + ')');
+               $('.canvas').css('transform-origin', '0 0');
+
+               $('#zoomby').html(Math.round((currZoom - 1) * 100) + '%');
                updateMap($('.canvas'), $('.map_overlay'), 0.1, false, true);
-               setDims(canvas.getZoom());
+               setDims(currZoom);
+               // setDims(canvas.getZoom());
                // zoomIn();
            });
     
            $('#zoomout').click(function(){
-               canvas.setZoom(canvas.getZoom() / SCALE_FACTOR ) ;
+               // canvas.setZoom(canvas.getZoom() / SCALE_FACTOR ) ;
                console.log(canvas.getHeight(), canvas.getWidth());
-               $('#zoomby').html(Math.round((canvas.getZoom() - 1) * 100) + '%');
+               currZoom = currZoom / SCALE_FACTOR;
+
+               $('.canvas').css('transform', 'scale(' + currZoom + ')');
+               $('.canvas').css('transform-origin', '0 0');
+
+               $('#zoomby').html(Math.round((currZoom - 1) * 100) + '%');
                updateMap($('.canvas'), $('.map_overlay'), 0.1, false, true);
-               setDims(canvas.getZoom());
+               setDims(currZoom);
 
                // zoomOut();
            });
     
            $('#zoomreset').click(function(){
-               canvas.setZoom(1) ;
-               $('#zoomby').html(Math.round((canvas.getZoom() - 1) * 100) + '%');
+               // canvas.setZoom(1) ;
+               currZoom = 1;
+               $('.canvas').css('transform', 'scale(' + currZoom + ')');
+               $('.canvas').css('transform-origin', '0 0');
+               $('#zoomby').html(Math.round((currZoom - 1) * 100) + '%');
                updateMap($('.map_overlay'), $('.map_outline'), 1.0, true, false);
+               setDims(currZoom);
                // zoomReset();
            });
     
@@ -355,13 +371,13 @@
                }
            });
 
-           /* ----
            $(canvas.wrapperEl).on('mousewheel', function(e) 
            {
                // console.log("mousewheel", e.originalEvent.wheelDelta);
                mouseWheel(e, e.originalEvent.wheelDelta / 120);
                e.preventDefault() && false;
            });
+           /* ----
               ---- */
 
         });
@@ -399,19 +415,19 @@
     </head>
     <body>
         <div id="main" style="overflow: hidden;">
-           <div id="drawarea" class="canvas-parent" style="width: 820px; height: 600px; background-color: #FFFFFF; float: left; overflow: auto; zoom: 100%;">
+           <div id="drawarea" class="canvas-parent" style="width: 1024px; height: 604px; background-color: #FFFFFF; float: left; overflow: auto; zoom: 100%;">
               <div class="canvas">
-              <canvas id="canvas" 
-                      width="800"
-                      height="590" 
-                      style="border:1px solid #000000;">
-              </canvas>
+                <canvas id="canvas" 
+                        width="1020"
+                        height="600" 
+                        style="border:1px solid #000000;">
+                </canvas>
               </div>
             </div>
-            <div id="tools">
-              <a id="toolslink" href="" onclick="show_hide('sidebar'); return false;">Show tools</a>
+            <div id="tools" style="font-family: Arial, Helvetica, sans-serif; font-size: 10px;">
+              <a id="toolslink" href="" onclick="show_hide('sidebar'); return false;" style="margin-left: 10px;">Show tools</a>
             </div>
-            <div id="sidebar" align="center" style="width: 100px; background-color: white; float: left; margin-left: 10px; border: 1px solid lightgray; border-radius: 8px; display: none"> 
+            <div id="sidebar" align="center" style="width: 100px; background-color: white; float: left; margin-left: 10px; border: 1px solid lightgray; border-radius: 8px; display: block;"> 
               <input id="openFile" class="btn-openFile" type="file" name="btnOpenFile" value="Open" title="Open file" />
               <input id="saveFile" class="btn-saveFile" type="button" name="btnSaveFile" value="Save" title="Save to file"/>
               <a download="savefile.json" id="downloadLink" style="display: none">Download</a>
@@ -452,11 +468,11 @@
               <hr/>
               X,Y:<label id="cursor"> </label>
               <hr/>
-              Zoom:<label id="zoomby"> </label>
               <hr/>
             </div>
             <div class="map_overlay" id="map_overlay">
               <div class="map_outline" id="map_outline">
+                  Zoom:<label id="zoomby"> </label>
               </div>
             </div>
             <div class="rightClickMenu" id="rightClickMenu">

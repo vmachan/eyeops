@@ -184,13 +184,16 @@
                             && canvas.isDrawingMode == false
                           )    
                        {
-                           // console.log("panning..");
+                           console.log("panning..");
                            var units = 10;
                            var delta = new fabric.Point(
                                                   options.e.movementX
                                                  ,options.e.movementY
                                                        );
-                           canvas.relativePan(delta);
+                           $(this).scrollTop($(this).scrollTop() + zMovePosY);
+                           $(this).scrollLeft($(this).scrollLeft() + zMovePosX);
+
+                           // canvas.relativePan(delta);
                            updateMap($('.canvas'), $('.map_overlay'), 0.1, false, false);
                        }
                    }

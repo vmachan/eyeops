@@ -107,13 +107,14 @@ function mouseWheel(event, delta)
     var zoomFactor = delta * 0.1;
     currZoom += zoomFactor;
     mapZoom = currZoom;
-    $('#zoomby').html(Math.round(currZoom) + '%');
+    $('#zoomby').html(Math.round((currZoom - 1) * 100) + '%');
 
     // Move back to the original position
     $(this).scrollTop($(this).scrollTop() - zMovePosY);
     $(this).scrollLeft($(this).scrollLeft() - zMovePosX);
 
-    // updateMap($('.canvas'), $('.map_overlay'), 0.1, false); // Update Map
+    updateMap($('.canvas'), $('.map_overlay'), 0.1, false, true); // Update Map
+    setDims(currZoom);
 }
 
 function updateMap(
@@ -136,9 +137,9 @@ function updateMap(
         mapElement.height(elementHeight * mapSizePercentage);
         
         mapElement.find(">:first-child")
-                  .width(viewportWidth * mapSizePercentage * canvas.getZoom());
+                  .width(viewportWidth * mapSizePercentage * currZoom)
         mapElement.find(">:first-child")
-                  .height(viewportHeight * mapSizePercentage * canvas.getZoom());
+                  .height(viewportHeight * mapSizePercentage * currZoom)
     }
     else
     {
@@ -147,14 +148,14 @@ function updateMap(
         var mapBaseWidth = mapElement.width();
         var mapBaseHeight = mapElement.height();
 
-        // console.log(elementWidth, elementHeight, mapViewportWidth, mapViewportHeight, canvas.getZoom(), basedFromElement.scrollTop(), basedFromElement.scrollLeft(), basedFromElement);
+        // console.log(currZoom, canvas.getZoom());
 
         if (isMousewheel)
         {
             mapElement.find(">:first-child")
-                  .width(mapBaseWidth * (1 - (canvas.getZoom() - 1)));
+                  .width(mapBaseWidth * (1 - (currZoom - 1)));
             mapElement.find(">:first-child")
-                  .height(mapBaseHeight * (1 - (canvas.getZoom() - 1))); 
+                  .height(mapBaseHeight * (1 - (currZoom - 1))); 
         }
         mapElement.find(">:first-child")
                   .css('top', basedFromElement.scrollTop() * mapSizePercentage);
