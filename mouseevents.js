@@ -121,12 +121,12 @@
                {
                    // console.log("gPanning set to true");
                    gPanning = 'pan';
-                   updateMap($('.canvas-parent'), $('.map_overlay'), 0.1, false, false);
                }
 	       zClickPosX = e.pageX;
                zClickPosY = e.pageY;
 	       zOldPosX = e.pageX;
                zOldPosY = e.pageY;
+               updateMap($('.canvas-parent'), $('.map_overlay'), 0.1, false, false);
            });
 
            canvas.on('mouse:move', function (options) 
@@ -213,8 +213,8 @@
                if (gPanning == 'pan')
                {
                    gPanning = true;
-                   updateMap($('.canvas-parent'), $('.map_overlay'), 0.1, false, false);
                }
+               updateMap($('.canvas-parent'), $('.map_overlay'), 0.1, false, false);
            });
 
            function addPolyLine(options) 

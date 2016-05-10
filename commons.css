@@ -735,3 +735,19 @@ button, html input[type="button"], input[type="reset"], input[type="submit"] {
     background-color: rgba(0, 255, 0, 0.5);
 }
 
+.tools
+{
+    position: absolute;
+    border: 0px solid #00EE00;
+    right: 60px;
+    top: 10px;
+}
+
+.sidebar
+{
+    position: absolute;
+    border: 0px solid #00EE00;
+    right: 10px;
+    top: 24px;
+}
+
