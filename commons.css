@@ -714,13 +714,81 @@ button, html input[type="button"], input[type="reset"], input[type="submit"] {
     background-color: cyan;
 }
 
+.btn-imgFile {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    color: transparent;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('newimage.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-imgFile:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: transparent;
+    background-color: cyan;
+}
+
+.btn-info {
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: normal;
+    color: transparent;
+    line-height: 1.42857143;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -webkit-border-radius: 2px;
+    -moz-user-select: none;
+    -moz-border-radius: 2px;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: url('info.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-info:hover{
+    font-size: 10px;
+    font-weight: bold;
+    color: transparent;
+    background-color: cyan;
+}
+
 .map_overlay
 {
     position: absolute;
     left: 10px;
     top: 10px;
     pointer-events: none;
-    width: 102px;
+    width: 124px;
     height: 60px;
     background-color: rgba(0, 0, 0, 0.5);
     opacity: 0.4;
@@ -730,7 +798,7 @@ button, html input[type="button"], input[type="reset"], input[type="submit"] {
 {
     position: absolute;
     border: 2px solid #00EE00;
-    width: 102px;
+    width: 124px;
     height: 60px;
     background-color: rgba(0, 255, 0, 0.5);
 }
@@ -747,7 +815,57 @@ button, html input[type="button"], input[type="reset"], input[type="submit"] {
 {
     position: absolute;
     border: 0px solid #00EE00;
-    right: 10px;
+    right: 60px;
     top: 24px;
+}
+
+.about-info
+{
+    display: none;
+    position: absolute;
+    top: 25%;
+    left: 20%;
+    width: 50%;
+    // height: 50%;
+    padding: 32px;
+    border: 2px solid teal;
+    background-color: white;
+    z-index:1002;
+    overflow: auto;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    font-size: 12px;
+    border-radius: 64px;
+}
+
+.close-about-info
+{
+    color: #aaaaaa;
+    float: right;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.close-about-info:hover,
+.close-about-info:focus
+{
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal_overlay
+{
+    display: none;
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    width: 100%;
+    height: 100%;
+    background-color: teal;
+    z-index:1001;
+    -moz-opacity: 0.25;
+    opacity:.25;
+    filter: alpha(opacity=25);
+    border-radius: 4px;
 }
 

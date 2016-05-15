@@ -64,9 +64,6 @@
            {
                canvas.remove(canvas.getActiveObject());
            }
-
-           // gClipboardObject = null;
-           // while (gClipboardObjectGroup.pop()) {}
        }
 
        $("#paste").click(function()

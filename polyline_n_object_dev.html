@@ -14,8 +14,6 @@
        var gSelectedObject = null;
        var gSelectedPointInPolyLine = null;
        var gSaveHistory = true;
-       var gObjectList = [];
-       var gUndoPtr = 0;
        var canvas;
        var gContextObj = null;
        var curX, curY;
@@ -61,8 +59,6 @@
            gSelectedObject = null;
            gSelectedPointInPolyLine = null;
            gSaveHistory = true;
-           gObjectList = [];
-           gUndoPtr = 0;
            gContextObj = null;
    
            gChangeLog = new Array();
@@ -136,8 +132,6 @@
            canvas = new fabric.Canvas('canvas');
 
            // Populate initial state with empty array of objects
-           gObjectList = new Array();
-           gObjectList.push(new Array());
 
            $('html').keyup(function(e) {
                if (e.keyCode == 46)
@@ -157,6 +151,7 @@
                {
                    gPanning = false;
                    canvas.isDrawingMode = false;
+                   canvas.selection = true;
                }
            });
 
@@ -296,7 +291,35 @@
                })(loadThis);
 
                readerObj.readAsText(loadThis);
+               updateModifications();
                return false;
+           });
+
+           $("#addImage").change(function(evt)
+           {
+               var newImage = new FileReader();
+
+               newImage.onload = (function(inFile) {
+                   var imageObj = new Image();
+                   imageObj.src = inFile.target.result;
+                   // console.log("addImage:", imageObj.src);
+
+                   imageObj.onload= function() { 
+                       var currImage = new fabric.Image(imageObj);
+                       currImage.set({
+                           top: 100
+                          ,left: 100
+                          ,width: 64
+                          ,height: 64
+                       });
+                       currImage.id = guid();
+                       canvas.add(currImage);
+                       updateModifications();
+                   }
+                   /* ----
+                    ---- */
+               });
+               newImage.readAsDataURL(evt.target.files[0]);
            });
 
            $("#delete").click(function()
@@ -349,6 +372,7 @@
     
            $('#pointer').click(function(){
                canvas.isDrawingMode = false;
+               canvas.selection = true;
                gPanning = false;
            });
     
@@ -370,6 +394,18 @@
                }
            });
 
+           $('#info').click(function(){
+               console.log("info..");
+               $('.about-info').css('display', 'block');
+               $('.modal_overlay').css('display', 'block');
+           });
+
+           $('.close-about-info').click(function(){
+               console.log("span about-info-close..");
+               $('.about-info').css('display', 'none');
+               $('.modal_overlay').css('display', 'none');
+           });
+    
            $('#drawarea').scroll(function()
            {
                console.log("drawareaScroll..");
@@ -379,12 +415,12 @@
            $(canvas.wrapperEl).on('mousewheel', function(e) 
            {
                // console.log("mousewheel", e.originalEvent.wheelDelta);
-               mouseWheel(e, e.originalEvent.wheelDelta / 120);
+
+               // Using zClickPosX as proxy to detect if file just got loaded
+               // if (zClickPosX != null)
+                   mouseWheel(e, e.originalEvent.wheelDelta / 120);
                e.preventDefault() && false;
            });
-           /* ----
-              ---- */
-
         });
 
         function show_hide (thisElement)
@@ -415,10 +451,12 @@
         }
     </script>
     <title>
-      Polyline with moving objects - Vinu's perfect drawing tool!
+        Eye Ops - Simple Diagramming Tool
     </title>
+      <!-- Polyline with moving objects - Vinu's perfect drawing tool! -->
     </head>
     <body>
+        <div id="modal_overlay" class="modal_overlay"></div>
         <div id="main" style="overflow: hidden;">
            <div id="drawarea" class="canvas-parent" style="width: 1240px; height: 604px; background-color: #FFFFFF; float: left; overflow: auto; zoom: 100%;">
               <div class="canvas">
@@ -429,14 +467,17 @@
                 </canvas>
               </div>
             </div>
+
             <div class="tools" id="tools" style="font-family: Arial, Helvetica, sans-serif; font-size: 10px;">
               <a id="toolslink" href="" onclick="show_hide('sidebar'); return false;" style="margin-left: 10px;">Show tools</a>
             </div>
+
             <div class="sidebar" id="sidebar" align="center" style="width: 100px; background-color: white; float: left; margin-left: 10px; border: 1px solid lightgray; border-radius: 8px; display: block;"> 
               <input id="openFile" class="btn-openFile" type="file" name="btnOpenFile" value="Open" title="Open file" />
               <input id="saveFile" class="btn-saveFile" type="button" name="btnSaveFile" value="Save" title="Save to file"/>
               <a download="savefile.json" id="downloadLink" style="display: none">Download</a>
               <hr/>
+
               <input id="pencil" class="btn-pencil" type="button" name="btnPencil" value="Draw" title="Freehand"/>
               <input id="pointer" class="btn-pointer" type="button" name="btnPointer" value="Pointer" title="Pointer"/>
               <input id="createBox" class="btn-rectangle" type="button" name="btnCreateBox" value="" title="Add rectangle"/>
@@ -444,12 +485,14 @@
               <input id="createText" class="btn-text" type="button" name="btnCreateText" value="" title="Add text"/>
               <input id="addChildWithPolyLine" class="btn-connector" type="button" name="btnAddChildWithPolyLine" value="Connect" title="Connect object"/>
               <hr/>
+
               <!--
               <input id="showObject" type="button" name="btnShowObject" value="Show selected object" />
               <input id="renderAll" type="button" name="btnRenderAll" value="Render All" />
               <input id="dumpCanvasObj" type="button" name="btnDumpCanvasObj" value="Dump canvas object" />
               <hr/>
                 -->
+
               <input id="cut" class="btn-cut" type="button" name="btncut" value="Cut" title="Cut"/>
               <input id="copy" class="btn-copy" type="button" name="btnCopy" value="Copy" title="Copy"/>
               <input id="paste" class="btn-paste" type="button" name="btnPaste" value="Paste" title="Paste"/>
@@ -460,6 +503,10 @@
               <input id="zoomin" class="btn-zoomin" type="button" name="btnZoomIn" value="Zoom In" title="Zoom in"/>
               <input id="zoomout" class="btn-zoomout" type="button" name="btnZoomOut" value="Zoom Out" title="Zoom out"/>
               <input id="zoomreset" class="btn-zoomreset" type="button" name="btnZoomReset" value="Zoom Reset" title="Reset zoom"/>
+
+              <input id="addImage" class="btn-imgFile" type="file" name="btnImageFile" value="Image" title="Add Image" />
+              <input id="info" class="btn-info" type="button" name="btnInfo" value="Info" title="About"/>
+
               <!--
               <input id="colorpick" class="jscolor {styleElement: null, valueElement: null}" style="width: 32px; height: 32px; background-image: url('color.png')" onchange="setObjectColor(this.jscolor);"> </input>
               <hr/>
@@ -468,8 +515,9 @@
               Mouse:<label id="mousePos"> </label>
               <hr/>
               Object:<label id="objPos"> </label>
-                -->
               <input id="pan" class="btn-pan" type="button" name="btnPan" value="Pan" title="Pan mode"/>
+                -->
+
             </div>
             <div class="map_overlay" id="map_overlay">
               <div class="map_outline" id="map_outline">
@@ -483,6 +531,14 @@
                     <li><a href="#" id="addVertex">Add vertex</a></li>
                     <li><a href="#" id="showContextObject">Show object</a></li>
                 </ul>
+            </div>
+            <div class="about-info" id="about-info">
+                <span class="close-about-info"> X </span>
+                <p style="width: 85%; text-align: justify;">
+                    <b>Eye Ops</b> (<i>Beta</i>) is a simple diagramming tool. It is free for public use. You can add basic shapes and connect them using straight lines. You can adjust the images, colors, sizes as well as load your own images. You can save your work to your computer and later load the files to continue working on them. More features are coming. All feedback is welcome, please send to vinnie.subscribes@yahoo.com.
+                </p>
+                <p>Created by Vinayak D. Machan.</p>
+                <p>Source Code available on github (https://github.com/vmachan/eyeops).</p>
             </div>
         </div>
     </body>
