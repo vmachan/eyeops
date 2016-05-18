@@ -13,6 +13,7 @@
                canvas.add(rect);
                updateModifications();
            });
+
            $("#createCircle").click(function()
            {
                var objCircle = new fabric.Circle(
@@ -25,6 +26,24 @@
                                      );
                objCircle.id = guid();
                canvas.add(objCircle);
+               updateModifications();
+           });
+
+           $("#createTriangle").click(function()
+           {
+               var objTriangle = new fabric.Triangle(
+                                      {
+                                        left: 300
+                                       ,top: 200
+                                       ,pointType: 'arrow_start'
+                                       ,angle: -45
+                                       ,width: 100
+                                       ,height: 100
+                                       ,fill: 'blue'
+                                      }
+                                     );
+               objTriangle.id = guid();
+               canvas.add(objTriangle);
                updateModifications();
            });
 
